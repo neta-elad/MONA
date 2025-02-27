@@ -93,14 +93,14 @@ GNUC_INLINE int lookup_binfun(int x, int y, char *binfun) {
   return binfun[2*x + y];
 }
 
-GNUC_INLINE int is_loop (bdd_manager *bddm, unsigned p, unsigned w) {
+static GNUC_INLINE int is_loop (bdd_manager *bddm, unsigned p, unsigned w) {
   return (bdd_is_leaf (bddm, w) && (bdd_leaf_value (bddm, w) == p));
 }
 
 /* return 1 if a loop involving an accepting state can be made; return
    -1 if a loop with a rejecting state can be made; return
    0 if loop with bottom can be made, otherwise return 2 */
-GNUC_INLINE int make_a_loop_status (int is_loop_p, int status_p,
+static GNUC_INLINE int make_a_loop_status (int is_loop_p, int status_p,
 				    int is_loop_q, int status_q,
 				    char *binfun) {
   if (is_loop_p) {

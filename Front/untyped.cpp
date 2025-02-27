@@ -1094,7 +1094,7 @@ UntypedExp_Call::genAST()
 
   case tWrongParameterType:
     char t[10];
-    sprintf(t, "%i",no);
+    snprintf(t, sizeof(t), "%i",no);
     TypeError("Wrong type of parameter " + (String) t + " at predicate '"
 	      + String(name->str) + "'", pos);
 

@@ -52,8 +52,9 @@ public:
   String(const int i) 
   {
     p = new srep;
-    p->s = new char[12];
-    sprintf(p->s, "%d", i);
+    const size_t bufsize = 12;
+    p->s = new char[bufsize];
+    snprintf(p->s, bufsize, "%d", i);
   }
 
   friend String &operator+(const String &s1, const String &s2)

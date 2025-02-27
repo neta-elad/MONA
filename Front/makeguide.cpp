@@ -190,8 +190,9 @@ MonaUntypedAST::typedUnivs2guide(unsigned num, IdentList *univs, unsigned idx,
   invariant(num>0);
   char *ssname;
   if (num > 1) { // branch
-    ssname = new char[strlen(pos)+4];
-    sprintf(ssname, "ss-%s", pos); // ss-01101
+    const size_t bufsize = strlen(pos)+4;
+    ssname = new char[bufsize];
+    snprintf(ssname, bufsize, "ss-%s", pos); // ss-01101
     ssname = symbolTable.insertString(ssname);
 
     char *leftpos, *rightpos;
@@ -233,8 +234,9 @@ MonaUntypedAST::variants2guide(unsigned num, ASTVariantList *variants,
   char *ssname;
   invariant(num>0);
   if (num > 1) { // branch
-    ssname = new char[strlen(univ)+strlen(type)+strlen(pos)+6];
-    sprintf(ssname, "ss-%s-%s-%s", univ, type, pos); // ss-U-A-01101
+    const size_t bufsize = strlen(univ)+strlen(type)+strlen(pos)+6;
+    ssname = new char[bufsize];
+    snprintf(ssname, bufsize, "ss-%s-%s-%s", univ, type, pos); // ss-U-A-01101
     ssname = symbolTable.insertString(ssname);
 
     char *leftpos, *rightpos;
@@ -254,8 +256,9 @@ MonaUntypedAST::variants2guide(unsigned num, ASTVariantList *variants,
       symbolTable.setTypeReachable(typeId);
     }
 
-    ssname = new char[strlen(univ)+strlen(type)+strlen(v->name)+7];
-    sprintf(ssname, "ss-%s-%s-%s-", univ, type, v->name);// ss-U-A-a1-
+    const size_t bufsize = strlen(univ)+strlen(type)+strlen(v->name)+7;
+    ssname = new char[bufsize];
+    snprintf(ssname, bufsize, "ss-%s-%s-%s-", univ, type, v->name);// ss-U-A-a1-
     ssname = symbolTable.insertString(ssname);
 
     char *leftpos, *rightpos;
@@ -282,8 +285,9 @@ MonaUntypedAST::components2guide(unsigned num, ASTComponentList *components,
 {
   char *ssname;
   if (num > 1) { // branch
-    ssname = new char[strlen(univ)+strlen(type)+strlen(variant)+strlen(pos)+7];
-    sprintf(ssname, "ss-%s-%s-%s-%s", univ, type, variant, pos);// ss-U-A-a1-01
+    const size_t bufsize = strlen(univ)+strlen(type)+strlen(variant)+strlen(pos)+7;
+    ssname = new char[bufsize];
+    snprintf(ssname, bufsize, "ss-%s-%s-%s-%s", univ, type, variant, pos);// ss-U-A-a1-01
     ssname = symbolTable.insertString(ssname);
 
     char *leftpos, *rightpos;
@@ -320,13 +324,15 @@ MonaUntypedAST::components2guide(unsigned num, ASTComponentList *components,
     }
     else { // type already in current universe
       if (variants->size() > 1) {
-	ssname = new char[strlen(univ)+strlen(c->type)+6];
-	sprintf(ssname, "ss-%s-%s-", univ, c->type); // ss-U-A-
+  const size_t bufsize = strlen(univ)+strlen(c->type)+6;
+	ssname = new char[bufsize];
+	snprintf(ssname, bufsize, "ss-%s-%s-", univ, c->type); // ss-U-A-
       }
       else {
 	ASTVariant *v = variants->get(0);
-	ssname = new char[strlen(univ)+strlen(c->type)+strlen(v->name)+7];
-	sprintf(ssname, "ss-%s-%s-%s-", univ, c->type, v->name);// ss-U-A-a1-
+  const size_t bufsize = strlen(univ)+strlen(c->type)+strlen(v->name)+7;
+	ssname = new char[bufsize];
+	snprintf(ssname, bufsize, "ss-%s-%s-%s-", univ, c->type, v->name);// ss-U-A-a1-
       }
       ssname = symbolTable.insertString(ssname);
     }
@@ -344,11 +350,12 @@ MonaUntypedAST::makeStateSpace(char *ssname, char *pos,
   Name n = Name(ssname, dummyPos);
   symbolTable.insertStatespace(&n);
   
-  *leftpos = new char[strlen(pos)+2];
-  sprintf(*leftpos, "%s0", pos);
+  const size_t bufsize = strlen(pos)+2;
+  *leftpos = new char[bufsize];
+  snprintf(*leftpos, bufsize, "%s0", pos);
   *leftpos = symbolTable.insertString(*leftpos);
-  *rightpos = new char[strlen(pos)+2];
-  sprintf(*rightpos, "%s1", pos);
+  *rightpos = new char[bufsize];
+  snprintf(*rightpos, bufsize, "%s1", pos);
   *rightpos = symbolTable.insertString(*rightpos);
   
   GuideFunc *g = new GuideFunc(new Name(ssname, dummyPos), NULL, NULL, kind);
@@ -359,8 +366,9 @@ MonaUntypedAST::makeStateSpace(char *ssname, char *pos,
 char*
 MonaUntypedAST::makeDummySS(char *univ)
 {
-  char *ssname = new char[strlen(univ)+7];
-  sprintf(ssname, "dummy-%s", univ);
+  const size_t bufsize = strlen(univ)+7;
+  char *ssname = new char[bufsize];
+  snprintf(ssname, bufsize, "dummy-%s", univ);
   ssname = symbolTable.insertString(ssname);
 
   if (!symbolTable.exists(ssname)) {

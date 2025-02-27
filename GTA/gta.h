@@ -19,6 +19,10 @@
  */
 
 /* See the 'MONA User Manual' for documentation */
+/* 
+ * NOTE: An entry-point file that uses gta.h 
+ * must declare a global  `Guide guide;`
+*/
 
 #ifndef __GTA_H
 #define __GTA_H

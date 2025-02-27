@@ -1,5 +1,4 @@
 .deps
-makefile
 /autom4te.cache/
 *~
 /config.log
@@ -22,4 +21,8 @@ Examples/presburger_transduction
 Front/mona
 Lib/dfa2dot
 Lib/gta2dot
-
+build
+.vscode
+.idea
+cmake-build-debug
+cmake-build-release

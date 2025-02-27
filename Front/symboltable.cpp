@@ -214,8 +214,9 @@ SymbolTable::setSSType(Ident ident, Ident type)
 Ident
 SymbolTable::insertFresh(MonaTypeTag type, IdentList *univs, bool implicit)
 {
-  char *n = new char[10];
-  sprintf(n, "<id%d>", noIdents);
+  const size_t bufsize = 10;
+  char *n = new char[bufsize];
+  snprintf(n, bufsize, "<id%d>", noIdents);
   n = insertString(n);
   Name dummy = Name(n, dummyPos);
   return insertVar(&dummy, type, univs, false, implicit);

@@ -49,36 +49,38 @@ AutLib::Dir::compare(AutLib::Dir::File *a, AutLib::Dir::File *b)
 
 AutLib::Dir::File::File(char *name, Signature *sign, Deque<SSSet> *statespaces)
 {
-  char *x = new char[10000];
+  const size_t x_size = 10000;
+  char *x = new char[x_size];
   char tmp[1000];
   unsigned len;
 
   // add name and signature to descriptor
-  sprintf(x, "%s^", name);
-  sign->dump(x+strlen(x));
+  snprintf(x, x_size, "%s^", name);
+  const size_t x_len = strlen(x);
+  sign->dump(x+x_len, x_size - x_len);
   len = strlen(x);
 
   if (options.mode == TREE) {
     // add guide
-    sprintf(tmp, "^%i", guide.numSs);
+    snprintf(tmp, sizeof(tmp), "^%i", guide.numSs);
     strcpy(x+len, tmp);
     len += strlen(tmp);
     for (unsigned i = 0; i < guide.numSs; i++) {
-      sprintf(tmp, "_%i_%i", guide.muLeft[i], guide.muRight[i]);
+      snprintf(tmp, sizeof(tmp), "_%i_%i", guide.muLeft[i], guide.muRight[i]);
       strcpy(x+len, tmp);
       len += strlen(tmp);
     }
 
     // add universes
-    sprintf(tmp, "^%i", guide.numUnivs);
+    snprintf(tmp, sizeof(tmp), "^%i", guide.numUnivs);
     strcpy(x+len, tmp);
     len += strlen(tmp);
     for (unsigned i = 0; i < guide.numUnivs; i++) {
-      sprintf(tmp, "_%s_%i", guide.univPos[i], guide.numUnivSS[i]);
+      snprintf(tmp, sizeof(tmp), "_%s_%i", guide.univPos[i], guide.numUnivSS[i]);
       strcpy(x+len, tmp);
       len += strlen(tmp);
       for (unsigned j = 0; j < guide.numUnivSS[i]; j++) {
-	sprintf(tmp, "_%i", guide.univSS[i][j]);
+	    snprintf(tmp, sizeof(tmp), "_%i", guide.univSS[i][j]);
       strcpy(x+len, tmp);
       len += strlen(tmp);
       }
@@ -87,10 +89,11 @@ AutLib::Dir::File::File(char *name, Signature *sign, Deque<SSSet> *statespaces)
     // add state spaces
     for (Deque<SSSet>::iterator i = statespaces->begin();
 	 i != statespaces->end(); i++) {
-      sprintf(x+(len++), "^");
+      snprintf(x+len, x_size - len, "^");
+      ++len;
       for (unsigned j = 0; j < guide.numSs; j++)
 	if ((*i)[j]) {
-	  sprintf(tmp, "_%d", j);
+	  snprintf(tmp, sizeof(tmp), "_%d", j);
 	  strcpy(x+len, tmp);
 	  len += strlen(tmp);
 	}
@@ -139,8 +142,9 @@ AutLib::Dir::Dir(char *name, char *src, Deque<char*> *dependencies)
 {
   dirname = name;
   sourcename = src;
-  libname = new char[strlen(dirname)+5];
-  sprintf(libname, "%s/LIB", dirname);
+  const size_t bufsize = strlen(dirname)+5;
+  libname = new char[bufsize];
+  snprintf(libname, bufsize, "%s/LIB", dirname);
 
   // make sure directory is created
   struct stat buf;
@@ -159,7 +163,7 @@ AutLib::Dir::Dir(char *name, char *src, Deque<char*> *dependencies)
       stat(*i, &buf2);
       if (difftime(buf.st_mtime, buf2.st_mtime) <= 0) {
 	char t[500];
-	sprintf(t, "/bin/rm %s/*%s %s/LIB", 
+	snprintf(t, sizeof(t), "/bin/rm %s/*%s %s/LIB", 
 		dirname, 
 		(options.mode == TREE) ? ".gta" : ".dfa",
 		dirname);
@@ -202,8 +206,9 @@ AutLib::Dir::getFileName(char *name, Signature *sign, Deque<SSSet> *statespaces)
     files.push_back(a);
     a->filenumber = nextFilenumber++;
   }
-  char *t = new char[strlen(dirname)+20];
-  sprintf(t, "%s/%i%s", dirname, a->filenumber, 
+  const size_t bufsize = strlen(dirname)+20;
+  char *t = new char[bufsize];
+  snprintf(t, bufsize, "%s/%i%s", dirname, a->filenumber, 
 	  (options.mode == TREE) ? ".gta" : ".dfa");
   return t;
 }

@@ -30,7 +30,7 @@ public:
   ~Signature();
 
   void make(IdentList &idents);
-  void dump(char *to);
+  void dump(char *to, size_t bufsize);
   int operator==(const Signature &);
 
   unsigned  size;

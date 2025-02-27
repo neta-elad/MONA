@@ -258,8 +258,9 @@ static Tree *printTreeRootComps(Tree *tree, int num, int idx, unsigned index,
     }
     else if (num == 1) {
       char *component = treetypes[type].componentName[variant][idx];
-      char *newpath = (char *) mem_alloc(strlen(path)+strlen(component)+2);
-      sprintf(newpath, "%s%s.", path, component);
+      const size_t bufsize = strlen(path)+strlen(component)+2;
+      char *newpath = (char *) mem_alloc(bufsize);
+      snprintf(newpath, bufsize, "%s%s.", path, component);
       res = printTreeRoot(tree, index, 
 			  treetypes[type].componentType[variant][idx],
 			  newpath);
@@ -285,8 +286,9 @@ static Tree *printTreeRootVariants(Tree *tree, int num, int idx,
     else {
       int n = treetypes[type].numComponents[idx];
       char *variant = treetypes[type].variantName[idx];
-      char *newpath = (char *) mem_alloc(strlen(path)+strlen(variant)+2);
-      sprintf(newpath, "%s%s.", path, variant);
+      const size_t bufsize = strlen(path)+strlen(variant)+2;
+      char *newpath = (char *) mem_alloc(bufsize);
+      snprintf(newpath, bufsize, "%s%s.", path, variant);
       res = printTreeRootComps(tree->left, (n+1)/2, 0, index,
 			       newpath, type, idx);
       if (!res)
@@ -336,8 +338,9 @@ static void printTypePosComps(Tree *tree, int num, int idx, unsigned index,
     }
     else if (num == 1) {
       char *component = treetypes[type].componentName[variant][idx];
-      char *newpath = (char *) mem_alloc(strlen(path)+strlen(component)+2);
-      sprintf(newpath, "%s%s%s", path, begin ? "" : ".", component);
+      const size_t bufsize = strlen(path)+strlen(component)+2;
+      char *newpath = (char *) mem_alloc(bufsize);
+      snprintf(newpath, bufsize, "%s%s%s", path, begin ? "" : ".", component);
       printTypePositions(tree, index, first, 0, all, newpath,
 			 treetypes[type].componentType[variant][idx]);
       mem_free(newpath);
@@ -359,8 +362,9 @@ static void printTypePosVariants(Tree *tree, int num, int idx, unsigned index,
     else {
       int n = treetypes[type].numComponents[idx];
       char *variant = treetypes[type].variantName[idx];
-      char *newpath = (char *) mem_alloc(strlen(path)+strlen(variant)+2);
-      sprintf(newpath, "%s%s%s", path, begin ? "" : ".", variant);
+      const size_t bufsize = strlen(path)+strlen(variant)+2;
+      char *newpath = (char *) mem_alloc(bufsize);
+      snprintf(newpath, bufsize, "%s%s%s", path, begin ? "" : ".", variant);
       printTypePosComps(tree->left, (n+1)/2, 0, 
 			index, first, 0, all, newpath, type, idx);
       printTypePosComps(tree->right, n/2, (n+1)/2, 
@@ -430,8 +434,9 @@ static void printTypeExample(Tree *example, unsigned num, char *names[],
 	  Tree *t = findNode(example, guide.univPos[u], 0);
 	  if (t) {
 	    char *univname = guide.univName[u];
-	    char *path = (char *) mem_alloc(strlen(univname)+2);
-	    sprintf(path, "%s:", univname);
+      const size_t bufsize = strlen(univname)+2;
+	    char *path = (char *) mem_alloc(bufsize);
+	    snprintf(path, bufsize, "%s:", univname);
 	    printTypePositions(t, indices[i], &first, 1, 0, path,
 			       guide.ssType[t->d]);
 	    if (!first)
@@ -453,8 +458,9 @@ static void printTypeExample(Tree *example, unsigned num, char *names[],
 	    Tree *t = findNode(example, guide.univPos[u], 0);
 	    if (t) {
 	      char *univname = guide.univName[u];
-	      char *path = (char *) mem_alloc(strlen(univname)+2);
-	      sprintf(path, "%s:", univname);
+        const size_t bufsize = strlen(univname)+2;
+	      char *path = (char *) mem_alloc(bufsize);
+	      snprintf(path, bufsize, "%s:", univname);
 	      t = printTreeRoot(t, indices[i], guide.ssType[t->d], path);
 	      mem_free(path);
 	      if (t) {
@@ -475,8 +481,9 @@ static void printTypeExample(Tree *example, unsigned num, char *names[],
 	    Tree *t = findNode(example, guide.univPos[u], 0);
 	    if (t) {
 	      char *univname = guide.univName[u];
-	      char *path = (char *) mem_alloc(strlen(univname)+2);
-	      sprintf(path, "%s:", univname);
+        const size_t bufsize = strlen(univname)+2;
+	      char *path = (char *) mem_alloc(bufsize);
+	      snprintf(path, bufsize, "%s:", univname);
 	      printTypePositions(t, indices[i], &first, 1, 1, path,
 				 guide.ssType[t->d]);
 	      mem_free(path);

@@ -83,11 +83,14 @@ Signature::~Signature()
 }
 
 void
-Signature::dump(char *to)
+Signature::dump(char *to, size_t bufsize)
 {
   unsigned i;
-  for (i = 0; i < size; i++)
-    to += sprintf(to, "_%i", sign[i]);
+  for (i = 0; i < size; i++) {
+    const size_t written = snprintf(to, bufsize, "_%i", sign[i]);
+    bufsize -= written;
+    to += written;
+  }
 }
 
 int
