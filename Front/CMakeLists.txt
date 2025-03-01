@@ -25,6 +25,11 @@ target_include_directories(mona PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(mona 
     PUBLIC monamem monabdd monadfa monagta Config::config
 )
+# Expose public headers
+target_sources(mona PUBLIC FILE_SET HEADERS
+        BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+        FILES ${MONA_HEADERS}
+)
 
 add_executable(mona_bin mona.cpp)
 set_target_properties(mona_bin PROPERTIES OUTPUT_NAME "mona")
