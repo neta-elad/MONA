@@ -4,6 +4,9 @@ TESTS = $(wildcard $(TEST_DIR)/*)
 EXAMPLE_DIR ?= build/Examples
 EXAMPLES = $(wildcard $(EXAMPLE_DIR)/*)
 
+BUILD_TYPE ?= Release
+CMAKE_CONFIGURE_FLAGS = -DCMAKE_BUILD_TYPE=$(BUILD_TYPE)
+
 .PHONY: all
 all: test examples
 
@@ -37,7 +40,7 @@ build: configure
 
 .PHONY: configure
 configure:
-	cmake -B "$(BUILD_DIR)" -S .
+	cmake $(CMAKE_CONFIGURE_FLAGS) -B "$(BUILD_DIR)" -S .
 
 .PHONY: clean
 clean:
