@@ -23,5 +23,6 @@ add_subdirectory(GTA)
 add_subdirectory(Config)
 add_subdirectory(Front)
 add_subdirectory(Examples)
+add_subdirectory(Model)
 add_subdirectory(tests)  # Test executables
 add_subdirectory(pymona)

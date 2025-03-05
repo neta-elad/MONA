@@ -24,5 +24,5 @@ target_compile_features(test_gta PRIVATE cxx_std_17)
 
 # test_libmona
 add_executable(test_libmona test_libmona.cpp)
-target_link_libraries(test_libmona PRIVATE mona)
+target_link_libraries(test_libmona PRIVATE mona monamodel)
 target_compile_features(test_libmona PRIVATE cxx_std_17)

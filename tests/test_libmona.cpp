@@ -11,6 +11,7 @@
 extern "C" {
     #include "mem.h"
 }
+#include "model.h"
 
 Options options;
 MonaUntypedAST *untypedAST;
@@ -23,76 +24,13 @@ AutLib lib;
 int numTypes = 0;
 bool regenerate = false;
 
-typedef struct {
-    size_t size;
-    int elements[];
-} IntArray;
 
-typedef union {
-    bool b;
-    int i;
-    IntArray *a;
-} Value;
-
-typedef struct {
-    size_t size;
-    Value values[];
-} Model;
-
-IntArray *makeIntArray(size_t size) {
-    IntArray *intArray = static_cast<IntArray *>(mem_alloc(sizeof(size_t) + sizeof(int) * size));
-    intArray->size = size;
-    return intArray;
-}
-
-Model *makeModel(size_t size) {
-    Model *model = static_cast<Model *>(mem_alloc(sizeof(size_t) + sizeof(Value) * size));
-    model->size = size;
-    return model;
-}
-
-void freeModel(Model *model, char *types) {
-    for (size_t i = 0; i < model->size; i++) {
-        if (types[i] == 2) {
-            mem_free(model->values[i].a);
-        }
-    }
-    mem_free(model);
-}
-
-Model *buildModelFromExample(char *example, int numVars, char *types) {
-    Model *model = makeModel(numVars);
-    size_t length = strlen(example)/(numVars + 1);
-    int j = 0, k = 0;
-    for (size_t i = 0; i < numVars; i++) {
-        switch (types[i]) {
-            case 0:
-                model->values[i].b = example[i*length] == '1';
-                break;
-            case 1:
-                for (; j < length && example[i*length+j+1] == '0'; j++) {}
-                model->values[i].i = j;
-                break;
-            case 2:
-                size_t size = 0;
-                for (size_t j = 0; j < length; j++) {
-                    if (example[i*length+j+1] == '1') {
-                        ++size;
-                    }
-                }
-                model->values[i].a = makeIntArray(size);
-
-                for (j = 0, k = 0; j < length; j++) {
-                    if (example[i*length+j+1] == '1') {
-                        model->values[i].a->elements[k++] = j;
-                    }
-                }
-                break;
-        }
-    }
-    return model;
-}
-
+// helper type for the visitor
+template<class... Ts>
+struct overloaded : Ts... { using Ts::operator()...; };
+// explicit deduction guide (not needed as of C++20)
+template<class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 int main() {
     std::cout << "Testing libmona\n";
@@ -160,30 +98,27 @@ int main() {
 
     char *example = dfaMakeExample(dfa, 1, numVars, offs);
 
-    Model *model = buildModelFromExample(example, numVars, types);
+    Model model = buildModelFromExample(example, numVars, vnames, types);
     mem_free(example);
 
-    for (int i = 0; i < numVars; i++) {
-        switch (types[i]) {
-            case 0:
-                printf("Boolean %s = %s\n", vnames[i], model->values[i].b ? "true" : "false");
-                break;
-            case 1:
-                printf("Integer %s = %d\n", vnames[i], model->values[i].i);
-                break;
-            case 2:
-                printf("Set %s = {", vnames[i]);
-                for (int j = 0; j < model->values[i].a->size; j++) {
-                    if (j != 0) {
-                        printf(", ");
-                    }
-                    printf("%d", model->values[i].a->elements[j]);
+    for (auto const& [name, value] : model) {
+        const char *name_cstr = name.c_str();
+        std::visit(overloaded{
+            [&name_cstr](bool arg) {
+                printf("Boolean %s = %s\n", name_cstr, arg ? "true" : "false");
+            },
+            [&name_cstr](int arg) {
+                printf("Integer %s = %d\n", name_cstr, arg);
+            },
+            [&name_cstr](const std::set<int>& arg) {
+                printf("Set %s = {", name_cstr);
+                for (auto& j : arg) {
+                    printf("%d; ", j);
                 }
-            printf("}\n");
-        }
+                printf("}\n");
+            }
+        }, value);
     }
-
-    freeModel(model, types);
 
     delete[] vnames;
     delete[] offs;
