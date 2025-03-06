@@ -479,7 +479,7 @@ protected:
 
 class ASTTerm1_Int: public ASTTerm1_n {
 public:
-  ASTTerm1_Int(int n, Pos p) :
+  ASTTerm1_Int(int n, Pos p = dummyPos) :
     ASTTerm1_n(aInt, n, p) {}
 
   void freeVars(IdentList*, IdentList*) {}

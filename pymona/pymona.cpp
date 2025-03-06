@@ -1,4 +1,5 @@
 #include <string>
+#include <utility>
 #include <variant>
 
 #include <nanobind/nanobind.h>
@@ -84,6 +85,15 @@ struct BoolIdent : BoolRef {
 };
 
 struct ElementRef {
+    ElementRef(int i)
+        : term(std::make_shared<ASTTerm1_Int>(i)) {
+    }
+
+    ElementRef(Identifiers identifiers, ASTTerm1Ptr term)
+        : identifiers(std::move(identifiers)),
+          term(std::move(term)) {
+    }
+
     Identifiers identifiers;
     ASTTerm1Ptr term;
 };
@@ -94,10 +104,10 @@ struct ElementIdent : ElementRef {
     }
 
     ElementIdent(Ident identt)
-        : ElementRef{
+        : ElementRef(
               Identifiers{identt},
               std::make_shared<ASTTerm1_Var1>(identt)
-          }, ident(identt) {
+          ), ident(identt) {
     }
 
     Ident ident;
@@ -124,10 +134,7 @@ struct SetIdent : SetRef {
 };
 
 ElementRef makeInt(int i) {
-    return ElementRef{
-        Identifiers{},
-        std::make_shared<ASTTerm1_Int>(i, dummyPos)
-    };
+    return i;
 }
 
 BoolRef makeLessThan(const ElementRef &i1, const ElementRef &i2) {
@@ -162,15 +169,11 @@ BoolRef makeAnd(nb::args args) {
     Identifiers identifiers;
     ASTFormPtr result = std::make_shared<ASTForm_True>(dummyPos);
     for (auto arg: args) {
-        if (nb::isinstance<BoolRef>(arg)) {
-            BoolRef f = nb::cast<BoolRef>(arg);
-            identifiers.insert(f.identifiers.begin(), f.identifiers.end());
-            result = std::make_shared<ASTForm_And>(
-                std::move(result), f.form, dummyPos
-            );
-        } else {
-            throw nb::value_error("Invalid argument type, expected a BoolRef");
-        }
+        BoolRef f = nb::cast<BoolRef>(arg);
+        identifiers.insert(f.identifiers.begin(), f.identifiers.end());
+        result = std::make_shared<ASTForm_And>(
+            std::move(result), f.form, dummyPos
+        );
     }
     return BoolRef{identifiers, std::move(result)};
 }
@@ -179,15 +182,11 @@ BoolRef makeOr(nb::args args) {
     Identifiers identifiers;
     ASTFormPtr result = std::make_shared<ASTForm_False>(dummyPos);
     for (auto arg: args) {
-        if (nb::isinstance<BoolRef>(arg)) {
-            BoolRef f = nb::cast<BoolRef>(arg);
-            identifiers.insert(f.identifiers.begin(), f.identifiers.end());
-            result = std::make_shared<ASTForm_Or>(
-                std::move(result), f.form, dummyPos
-            );
-        } else {
-            throw nb::value_error("Invalid argument type, expected a BoolRef");
-        }
+        BoolRef f = nb::cast<BoolRef>(arg);
+        identifiers.insert(f.identifiers.begin(), f.identifiers.end());
+        result = std::make_shared<ASTForm_Or>(
+            std::move(result), f.form, dummyPos
+        );
     }
     return BoolRef{identifiers, std::move(result)};
 }
@@ -214,10 +213,40 @@ BoolRef makeForall1(const ElementIdent &id, const BoolRef &f) {
     };
 }
 
+BoolRef makeForall1(nb::iterable ids, const BoolRef &f) {
+    IdentList *list = new IdentList;
+    Identifiers identifiers;
+    for (auto id : nb::iter(ids)) {
+        Ident ident = nb::cast<ElementIdent>(id).ident;
+        identifiers.insert(ident);
+        list->insert(ident);
+    }
+    identifiers.insert(f.identifiers.begin(), f.identifiers.end());
+    return BoolRef{
+        identifiers,
+        std::make_shared<ASTForm_All1>(nullptr, list, f.form)
+    };
+}
+
 BoolRef makeExists1(const ElementIdent &id, const BoolRef &f) {
     IdentList *list = new IdentList(id.ident);
     return BoolRef{
         set_union(id.identifiers, f.identifiers),
+        std::make_shared<ASTForm_Ex1>(nullptr, list, f.form)
+    };
+}
+
+BoolRef makeExists1(nb::iterable ids, const BoolRef &f) {
+    IdentList *list = new IdentList;
+    Identifiers identifiers;
+    for (auto id : nb::iter(ids)) {
+        Ident ident = nb::cast<ElementIdent>(id).ident;
+        identifiers.insert(ident);
+        list->insert(ident);
+    }
+    identifiers.insert(f.identifiers.begin(), f.identifiers.end());
+    return BoolRef{
+        identifiers,
         std::make_shared<ASTForm_Ex1>(nullptr, list, f.form)
     };
 }
@@ -253,7 +282,8 @@ NB_MODULE(pymona, m) {
             .def("__str__",
                  [](const BoolIdent &ident) { return lookupSymbol(ident.ident); });
 
-    nb::class_<ElementRef>(m, "ElementRef");
+    nb::class_<ElementRef>(m, "ElementRef")
+            .def(nb::init_implicit<int>());
     nb::class_<ElementIdent, ElementRef>(m, "ElementIdent")
             .def(nb::init<std::string>())
             .def("__str__",
@@ -276,8 +306,15 @@ NB_MODULE(pymona, m) {
     m.def("or_", &makeOr);
     m.def("implies", &makeImplies);
     m.def("not_", &makeNot);
-    m.def("forall1", &makeForall1);
-    m.def("exists1", &makeExists1);
+
+    m.def("forall1",
+        nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeForall1));
+    m.def("forall1",
+        nb::overload_cast<nb::iterable, const BoolRef &>(&makeForall1));
+    m.def("exists1",
+        nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeExists1));
+    m.def("exists1",
+        nb::overload_cast<nb::iterable, const BoolRef &>(&makeExists1));
 
     m.def("solve", &solve);
 }
