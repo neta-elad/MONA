@@ -400,37 +400,42 @@ protected:
 
 class ASTForm_vf: public ASTForm {
 public:
-  ASTForm_vf(ASTKind kind, IdentList *vll, ASTForm *ff, Pos p) :
-    ASTForm(kind, p), vl(vll), f(ff) {}
-  ~ASTForm_vf() {delete f; delete vl;}
+  ASTForm_vf(ASTKind kind, IdentList *vll, ASTForm *ff, Pos p) : // todo(neta) delete
+    ASTForm_vf(kind, vll, ASTFormPtr(ff), p) {}
+  ASTForm_vf(ASTKind kind, IdentList *vll, ASTFormPtr ff, Pos p) :
+    ASTForm(kind, p), vl(vll), f(std::move(ff)) {}
+  ~ASTForm_vf() {delete vl;}
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
   IdentList *vl;
-  ASTForm *f;
+  ASTFormPtr f;
 };
 
 class ASTForm_uvf: public ASTForm {
 public:
   ASTForm_uvf(ASTKind kind, IdentList *ull, IdentList *vll, 
 		  ASTForm *ff, Pos p) :
-    ASTForm(kind, p), ul(ull), vl(vll), f(ff) {}
-  ~ASTForm_uvf() {delete ul; delete f; delete vl;}
+    ASTForm(kind, p), ul(ull), vl(vll), f(ASTFormPtr(ff)) {} // todo(neta) delete
+  ASTForm_uvf(ASTKind kind, IdentList *ull, IdentList *vll,
+		  ASTFormPtr ff, Pos p) :
+    ASTForm(kind, p), ul(ull), vl(vll), f(std::move(ff)) {}
+  ~ASTForm_uvf() {delete ul; delete vl;}
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
   IdentList *ul;
   IdentList *vl;
-  ASTForm *f;
+  ASTFormPtr f;
 };
 
 ////////// Syntactical categories of ASTTerm1 /////////////////////////////////
 
 class ASTTerm1_Var1: public ASTTerm1_n {
 public:
-  ASTTerm1_Var1(int n, Pos p) :
+  ASTTerm1_Var1(int n, Pos p = dummyPos) :
     ASTTerm1_n(aVar1, n, p) {}
 
   void freeVars(IdentList*, IdentList*);
@@ -553,7 +558,7 @@ public:
 
 class ASTTerm2_Var2: public ASTTerm2 {
 public:
-  ASTTerm2_Var2(int nn, Pos p) :
+  ASTTerm2_Var2(int nn, Pos p = dummyPos) :
     ASTTerm2(aVar2, p), n(nn) {}
 
   void freeVars(IdentList*, IdentList*);
@@ -724,7 +729,7 @@ protected:
 
 class ASTForm_Var0: public ASTForm {
 public:
-  ASTForm_Var0(int nn, Pos p) :
+  ASTForm_Var0(int nn, Pos p = dummyPos) :
     ASTForm(aVar0, p), n(nn) {}
 
   void freeVars(IdentList*, IdentList*);
@@ -860,7 +865,7 @@ class ASTForm_Less: public ASTForm_tt {
 public:
   ASTForm_Less(ASTTerm1 *t1, ASTTerm1 *t2, Pos p) : //todo(neta) delete
     ASTForm_tt(aLess, t1, t2, p) {}
-  ASTForm_Less(ASTTerm1Ptr t1, ASTTerm1Ptr t2, Pos p) :
+  ASTForm_Less(ASTTerm1Ptr t1, ASTTerm1Ptr t2, Pos p = dummyPos) :
     ASTForm_tt(aLess, std::move(t1), std::move(t2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
@@ -909,7 +914,7 @@ class ASTForm_And: public ASTForm_ff {
 public:
   ASTForm_And(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) delete
     ASTForm_ff(aAnd, f1, f2, p) {}
-  ASTForm_And(ASTFormPtr f1, ASTFormPtr f2, Pos p) :
+  ASTForm_And(ASTFormPtr f1, ASTFormPtr f2, Pos p = dummyPos) :
     ASTForm_ff(aAnd, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
@@ -942,7 +947,7 @@ class ASTForm_Not: public ASTForm {
 public:
   ASTForm_Not(ASTForm *ff, Pos p) : //todo(neta) delete
     ASTForm_Not(ASTFormPtr(ff), p) {}
-  ASTForm_Not(ASTFormPtr ff, Pos p) :
+  ASTForm_Not(ASTFormPtr ff, Pos p = dummyPos) :
     ASTForm(aNot, p), f(std::move(ff)) {}
   ~ASTForm_Not() = default;
 
@@ -956,8 +961,8 @@ protected:
 
 class ASTForm_Ex0: public ASTForm_vf {
 public:
-  ASTForm_Ex0(IdentList *vl, ASTForm *f, Pos p) :
-    ASTForm_vf(aEx0, vl, f, p) {}
+  ASTForm_Ex0(IdentList *vl, ASTFormPtr f, Pos p = dummyPos) :
+    ASTForm_vf(aEx0, vl, std::move(f), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -966,7 +971,9 @@ public:
 class ASTForm_Ex1: public ASTForm_uvf {
 public:
   ASTForm_Ex1(IdentList *ul, IdentList *vl, ASTForm *f, Pos p) :
-    ASTForm_uvf(aEx1, ul, vl, f, p) {}
+    ASTForm_uvf(aEx1, ul, vl, f, p) {} // todo(neta) delete
+  ASTForm_Ex1(IdentList *ul, IdentList *vl, ASTFormPtr f, Pos p = dummyPos) :
+    ASTForm_uvf(aEx1, ul, vl, std::move(f), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -983,8 +990,10 @@ public:
 
 class ASTForm_All0: public ASTForm_vf {
 public:
-  ASTForm_All0(IdentList *vl, ASTForm *f, Pos p) :
+  ASTForm_All0(IdentList *vl, ASTForm *f, Pos p) : //todo(neta) delete
     ASTForm_vf(aAll0, vl, f, p) {}
+  ASTForm_All0(IdentList *vl, ASTFormPtr f, Pos p = dummyPos) :
+    ASTForm_vf(aAll0, vl, std::move(f), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -993,7 +1002,9 @@ public:
 class ASTForm_All1: public ASTForm_uvf {
 public:
   ASTForm_All1(IdentList *ul, IdentList *vl, ASTForm *f, Pos p) :
-    ASTForm_uvf(aAll1, ul, vl, f, p) {}
+    ASTForm_uvf(aAll1, ul, vl, f, p) {} // todo(neta) delete
+  ASTForm_All1(IdentList *ul, IdentList *vl, ASTFormPtr f, Pos p = dummyPos) :
+    ASTForm_uvf(aAll1, ul, vl, std::move(f), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();

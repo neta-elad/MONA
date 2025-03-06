@@ -5,13 +5,14 @@
 #include <set>
 #include <string>
 #include <map>
+#include <optional>
 
 #include "ast.h"
 
 using Value = std::variant<bool, int, std::set<int>>;
 using Model = std::map<std::string, Value>;
 
-Model getModel(const MonaAST &ast);
+std::optional<Model> getModel(const MonaAST &ast);
 
 
 #endif //MODEL_H

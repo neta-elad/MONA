@@ -14,7 +14,6 @@ extern Offsets offsets;
 
 Model buildModelFromExample(char *example, int numVars, char **names, char *types) {
     Model model;
-    if (!example) return model; //todo(neta): handle unsat better
     size_t length = strlen(example)/(numVars + 1);
     int j = 0;
     for (size_t i = 0; i < numVars; i++) {
@@ -47,7 +46,7 @@ Model buildModelFromExample(char *example, int numVars, char **names, char *type
     return model;
 }
 
-Model getModel(const MonaAST &ast) {
+std::optional<Model> getModel(const MonaAST &ast) {
     codeTable = new CodeTable;
     VarCode formulaCode = ast.formula->makeCode();
     DFA *dfa = formulaCode.DFATranslate();
@@ -102,6 +101,8 @@ Model getModel(const MonaAST &ast) {
     // end copy from symbol table
 
     char *example = dfaMakeExample(dfa, 1, numVars, offs);
+
+    if (!example) return {};
 
     Model model = buildModelFromExample(example, numVars, vnames, types);
     mem_free(example);

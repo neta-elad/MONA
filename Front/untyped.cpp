@@ -691,7 +691,7 @@ UntypedExp_Ex0::genAST()
   if (f->order != oForm)
     TypeError("Type mismatch at 'ex0'", pos);
 
-  AST *result = new ASTForm_Ex0(idents, (ASTForm *) f, pos);
+  AST *result = new ASTForm_Ex0(idents, ASTFormPtr((ASTForm *) f), pos);
 
   symbolTable.closeLocal();
 

@@ -1,10 +1,12 @@
 #include <string>
+#include <variant>
 
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/set.h>
+#include <nanobind/stl/optional.h>
 
 #include "symboltable.h"
 #include "printline.h"
@@ -18,6 +20,8 @@
 extern "C" {
 #include "mem.h"
 }
+
+#include "ident.h"
 
 #include "model.h"
 #include "utils.h"
@@ -64,9 +68,39 @@ struct BoolRef {
     ASTFormPtr form;
 };
 
+struct BoolIdent : BoolRef {
+    BoolIdent(const std::string &name)
+        : BoolIdent(addVar(name, Varname0)) {
+    }
+
+    BoolIdent(Ident identt)
+        : BoolRef{
+              Identifiers{identt},
+              std::make_shared<ASTForm_Var0>(identt)
+          }, ident(identt) {
+    }
+
+    Ident ident;
+};
+
 struct ElementRef {
     Identifiers identifiers;
     ASTTerm1Ptr term;
+};
+
+struct ElementIdent : ElementRef {
+    ElementIdent(const std::string &name)
+        : ElementIdent(addVar(name, Varname1)) {
+    }
+
+    ElementIdent(Ident identt)
+        : ElementRef{
+              Identifiers{identt},
+              std::make_shared<ASTTerm1_Var1>(identt)
+          }, ident(identt) {
+    }
+
+    Ident ident;
 };
 
 struct SetRef {
@@ -74,66 +108,57 @@ struct SetRef {
     ASTTerm2Ptr term;
 };
 
-BoolRef create_bool(const std::string &name) {
-    Ident ident = addVar(name, Varname0);
-    return BoolRef{
-        std::set{ident},
-        std::make_shared<ASTForm_Var0>(ident, dummyPos)
-    };
-}
+struct SetIdent : SetRef {
+    SetIdent(const std::string &name)
+        : SetIdent(addVar(name, Varname2)) {
+    }
 
-ElementRef create_element(const std::string &name) {
-    Ident ident = addVar(name, Varname1);
-    return ElementRef{
-        std::set{ident},
-        std::make_shared<ASTTerm1_Var1>(ident, dummyPos)
-    };
-}
+    SetIdent(Ident identt)
+        : SetRef{
+              Identifiers{identt},
+              std::make_shared<ASTTerm2_Var2>(identt)
+          }, ident(identt) {
+    }
 
-ElementRef create_int(int i) {
+    Ident ident;
+};
+
+ElementRef makeInt(int i) {
     return ElementRef{
         Identifiers{},
         std::make_shared<ASTTerm1_Int>(i, dummyPos)
     };
 }
 
-SetRef create_set(const std::string &name) {
-    Ident ident = addVar(name, Varname2);
-    return SetRef{
-        std::set{ident},
-        std::make_shared<ASTTerm2_Var2>(ident, dummyPos)
-    };
-}
-
-BoolRef create_less_than(const ElementRef &i1, const ElementRef &i2) {
+BoolRef makeLessThan(const ElementRef &i1, const ElementRef &i2) {
     return BoolRef{
         set_union(i1.identifiers, i2.identifiers),
         std::make_shared<ASTForm_Less>(i1.term, i2.term, dummyPos)
     };
 }
 
-BoolRef create_in(const ElementRef &e, const SetRef &s) {
+BoolRef makeIn(const ElementRef &e, const SetRef &s) {
     return BoolRef{
         set_union(e.identifiers, s.identifiers),
         std::make_shared<ASTForm_In>(e.term, s.term, dummyPos)
     };
 }
 
-BoolRef create_true() {
+BoolRef makeTrue() {
     return BoolRef{
         std::set<Ident>(),
         std::make_shared<ASTForm_True>(dummyPos)
     };
 }
 
-BoolRef create_false() {
+BoolRef makeFalse() {
     return BoolRef{
         std::set<Ident>(),
         std::make_shared<ASTForm_False>(dummyPos)
     };
 }
 
-BoolRef create_and(nb::args args) {
+BoolRef makeAnd(nb::args args) {
     Identifiers identifiers;
     ASTFormPtr result = std::make_shared<ASTForm_True>(dummyPos);
     for (auto arg: args) {
@@ -150,7 +175,7 @@ BoolRef create_and(nb::args args) {
     return BoolRef{identifiers, std::move(result)};
 }
 
-BoolRef create_or(nb::args args) {
+BoolRef makeOr(nb::args args) {
     Identifiers identifiers;
     ASTFormPtr result = std::make_shared<ASTForm_False>(dummyPos);
     for (auto arg: args) {
@@ -167,26 +192,46 @@ BoolRef create_or(nb::args args) {
     return BoolRef{identifiers, std::move(result)};
 }
 
-BoolRef create_implies(const BoolRef &f1, const BoolRef &f2) {
+BoolRef makeImplies(const BoolRef &f1, const BoolRef &f2) {
     return BoolRef{
         set_union(f1.identifiers, f2.identifiers),
         std::make_shared<ASTForm_Impl>(f1.form, f2.form, dummyPos)
     };
 }
 
-BoolRef create_not(const BoolRef &f) {
+BoolRef makeNot(const BoolRef &f) {
     return BoolRef{
         f.identifiers,
         std::make_shared<ASTForm_Not>(f.form, dummyPos)
     };
 }
 
-Model solve(const BoolRef &formula) {
+BoolRef makeForall1(const ElementIdent &id, const BoolRef &f) {
+    IdentList *list = new IdentList(id.ident);
+    return BoolRef{
+        set_union(id.identifiers, f.identifiers),
+        std::make_shared<ASTForm_All1>(nullptr, list, f.form)
+    };
+}
+
+BoolRef makeExists1(const ElementIdent &id, const BoolRef &f) {
+    IdentList *list = new IdentList(id.ident);
+    return BoolRef{
+        set_union(id.identifiers, f.identifiers),
+        std::make_shared<ASTForm_Ex1>(nullptr, list, f.form)
+    };
+}
+
+std::optional<Model> solve(const BoolRef &formula) {
     MonaAST ast{formula.form};
     for (const auto ident: formula.identifiers) {
         ast.globals.insert(ident);
     }
     return getModel(ast);
+}
+
+std::string lookupSymbol(Ident ident) {
+    return symbolTable.lookupSymbol(ident);
 }
 
 
@@ -203,22 +248,36 @@ NB_MODULE(pymona, m) {
                  [](const Foo &p) { return "<pymona.Foo named '" + p.name + "'>"; });
 
     nb::class_<BoolRef>(m, "BoolRef");
+    nb::class_<BoolIdent, BoolRef>(m, "BoolIdent")
+            .def(nb::init<std::string>())
+            .def("__str__",
+                 [](const BoolIdent &ident) { return lookupSymbol(ident.ident); });
+
     nb::class_<ElementRef>(m, "ElementRef");
+    nb::class_<ElementIdent, ElementRef>(m, "ElementIdent")
+            .def(nb::init<std::string>())
+            .def("__str__",
+                 [](const ElementIdent &ident) { return lookupSymbol(ident.ident); });
+
     nb::class_<SetRef>(m, "SetRef");
+    nb::class_<SetIdent, SetRef>(m, "SetIdent")
+            .def(nb::init<std::string>())
+            .def("__str__",
+                 [](const SetIdent &ident) { return lookupSymbol(ident.ident); });
 
-    m.def("create_element", &create_element);
-    m.def("create_int", &create_int);
-    m.def("create_less_than", &create_less_than);
+    m.def("int_", &makeInt);
+    m.def("less_than", &makeLessThan);
 
-    m.def("create_set", &create_set);
-    m.def("create_in", &create_in);
+    m.def("in_", &makeIn);
 
-    m.def("create_bool", &create_bool);
-    m.def("create_true", &create_true);
-    m.def("create_false", &create_false);
-    m.def("create_and", &create_and);
-    m.def("create_or", &create_or);
-    m.def("create_implies", &create_implies);
-    m.def("create_not", &create_not);
+    m.def("true", &makeTrue);
+    m.def("false", &makeFalse);
+    m.def("and_", &makeAnd);
+    m.def("or_", &makeOr);
+    m.def("implies", &makeImplies);
+    m.def("not_", &makeNot);
+    m.def("forall1", &makeForall1);
+    m.def("exists1", &makeExists1);
+
     m.def("solve", &solve);
 }
