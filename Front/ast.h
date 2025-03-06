@@ -21,6 +21,9 @@
 #ifndef __AST_H
 #define __AST_H
 
+#include <memory>
+#include <utility>
+
 #include "ident.h"
 #include "codetable.h"
 #include "printline.h"
@@ -121,6 +124,8 @@ public:
   void dump() = 0; 
 };
 
+using ASTTerm1Ptr = std::shared_ptr<ASTTerm1>;
+
 class Term1List: public DequeGC<ASTTerm1*> {};
 
 class ASTTerm2: public ASTTerm {
@@ -132,6 +137,8 @@ public:
   void dump() = 0; 
 };
 
+using ASTTerm2Ptr = std::shared_ptr<ASTTerm2>;
+
 class Term2List: public DequeGC<ASTTerm2*> {};
 
 class ASTForm: public AST {
@@ -142,6 +149,8 @@ public:
   virtual VarCode makeCode(SubstCode *subst = NULL) = 0;
   void dump() = 0;
 };
+
+using ASTFormPtr = std::shared_ptr<ASTForm>;
 
 class FormList: public DequeGC<ASTForm*> {};
 
@@ -283,15 +292,17 @@ protected:
 
 class ASTForm_tT: public ASTForm {
 public:
-  ASTForm_tT(ASTKind kind, ASTTerm1 *tt1, ASTTerm2 *TT2, Pos p) :
+  ASTForm_tT(ASTKind kind, ASTTerm1 *tt1, ASTTerm2 *TT2, Pos p) : //todo(neta) delete
     ASTForm(kind, p), t1(tt1), T2(TT2) {}
-  ~ASTForm_tT() {delete t1; delete T2;}
+  ASTForm_tT(ASTKind kind, ASTTerm1Ptr tt1, ASTTerm2Ptr TT2, Pos p) :
+    ASTForm(kind, p), t1(std::move(tt1)), T2(std::move(TT2)) {}
+  ~ASTForm_tT() = default;
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
-  ASTTerm1 *t1; 
-  ASTTerm2 *T2;
+  ASTTerm1Ptr t1;
+  ASTTerm2Ptr T2;
 };
 
 class ASTForm_T: public ASTForm {
@@ -322,14 +333,16 @@ protected:
 class ASTForm_tt: public ASTForm {
 public:
   ASTForm_tt(ASTKind kind, ASTTerm1 *tt1, ASTTerm1 *tt2, Pos p) :
-    ASTForm(kind, p), t1(tt1), t2(tt2) {}
-  ~ASTForm_tt() {delete t1; delete t2;}
+    ASTForm(kind, p), t1(tt1), t2(tt2) {} // todo(neta) delete
+  ASTForm_tt(ASTKind kind, ASTTerm1Ptr tt1, ASTTerm1Ptr tt2, Pos p) :
+    ASTForm(kind, p), t1(std::move(tt1)), t2(std::move(tt2)) {}
+  ~ASTForm_tt() = default;
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
-  ASTTerm1 *t1;
-  ASTTerm1 *t2;
+  ASTTerm1Ptr t1;
+  ASTTerm1Ptr t2;
 };
 
 class ASTForm_nt: public ASTForm {
@@ -372,15 +385,17 @@ protected:
 
 class ASTForm_ff: public ASTForm {
 public:
-  ASTForm_ff(ASTKind kind, ASTForm *ff1, ASTForm *ff2, Pos p) :
-    ASTForm(kind, p), f1(ff1), f2(ff2) {}
-  ~ASTForm_ff() {delete f1; delete f2;}
+  ASTForm_ff(ASTKind kind, ASTForm *ff1, ASTForm *ff2, Pos p) : // todo(neta) delete
+    ASTForm_ff(kind, ASTFormPtr(ff1), ASTFormPtr(ff2), p) {}
+  ASTForm_ff(ASTKind kind, ASTFormPtr ff1, ASTFormPtr ff2, Pos p) :
+    ASTForm(kind, p), f1(std::move(ff1)), f2(std::move(ff2)) {}
+  ~ASTForm_ff() = default;
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
-  ASTForm *f1;
-  ASTForm *f2;
+  ASTFormPtr f1;
+  ASTFormPtr f2;
 };
 
 class ASTForm_vf: public ASTForm {
@@ -740,8 +755,10 @@ public:
 
 class ASTForm_In: public ASTForm_tT {
 public:
-  ASTForm_In(ASTTerm1 *t1, ASTTerm2 *T2, Pos p) :
+  ASTForm_In(ASTTerm1 *t1, ASTTerm2 *T2, Pos p) : //todo(neta) delete
     ASTForm_tT(aIn, t1, T2, p) {}
+  ASTForm_In(ASTTerm1Ptr t1, ASTTerm2Ptr T2, Pos p) :
+    ASTForm_tT(aIn, std::move(t1), std::move(T2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -841,8 +858,10 @@ public:
 
 class ASTForm_Less: public ASTForm_tt {
 public:
-  ASTForm_Less(ASTTerm1 *t1, ASTTerm1 *t2, Pos p) :
+  ASTForm_Less(ASTTerm1 *t1, ASTTerm1 *t2, Pos p) : //todo(neta) delete
     ASTForm_tt(aLess, t1, t2, p) {}
+  ASTForm_Less(ASTTerm1Ptr t1, ASTTerm1Ptr t2, Pos p) :
+    ASTForm_tt(aLess, std::move(t1), std::move(t2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -868,8 +887,10 @@ public:
 
 class ASTForm_Impl: public ASTForm_ff {
 public:
-  ASTForm_Impl(ASTForm *f1, ASTForm *f2, Pos p) :
+  ASTForm_Impl(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) remove
     ASTForm_ff(aImpl, f1, f2, p) {}
+  ASTForm_Impl(ASTFormPtr f1, ASTFormPtr f2, Pos p) :
+    ASTForm_ff(aImpl, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -877,7 +898,7 @@ public:
 
 class ASTForm_Biimpl: public ASTForm_ff {
 public:
-  ASTForm_Biimpl(ASTForm *f1, ASTForm *f2, Pos p) :
+  ASTForm_Biimpl(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) delete
     ASTForm_ff(aBiimpl, f1, f2, p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
@@ -886,8 +907,10 @@ public:
 
 class ASTForm_And: public ASTForm_ff {
 public:
-  ASTForm_And(ASTForm *f1, ASTForm *f2, Pos p) :
+  ASTForm_And(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) delete
     ASTForm_ff(aAnd, f1, f2, p) {}
+  ASTForm_And(ASTFormPtr f1, ASTFormPtr f2, Pos p) :
+    ASTForm_ff(aAnd, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -895,8 +918,10 @@ public:
 
 class ASTForm_IdLeft: public ASTForm_ff {
 public:
-  ASTForm_IdLeft(ASTForm *f1, ASTForm *f2, Pos p) :
+  ASTForm_IdLeft(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) delete
     ASTForm_ff(aIdLeft, f1, f2, p) {}
+  ASTForm_IdLeft(ASTFormPtr f1, ASTFormPtr f2, Pos p) :
+    ASTForm_ff(aIdLeft, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -904,8 +929,10 @@ public:
 
 class ASTForm_Or: public ASTForm_ff {
 public:
-  ASTForm_Or(ASTForm *f1, ASTForm *f2, Pos p) :
+  ASTForm_Or(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) delete
     ASTForm_ff(aOr, f1, f2, p) {}
+  ASTForm_Or(ASTFormPtr f1, ASTFormPtr f2, Pos p) :
+    ASTForm_ff(aOr, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -913,16 +940,18 @@ public:
 
 class ASTForm_Not: public ASTForm {
 public:
-  ASTForm_Not(ASTForm *ff, Pos p) :
-    ASTForm(aNot, p), f(ff) {}
-  ~ASTForm_Not() {delete f;}
+  ASTForm_Not(ASTForm *ff, Pos p) : //todo(neta) delete
+    ASTForm_Not(ASTFormPtr(ff), p) {}
+  ASTForm_Not(ASTFormPtr ff, Pos p) :
+    ASTForm(aNot, p), f(std::move(ff)) {}
+  ~ASTForm_Not() = default;
 
   void freeVars(IdentList*, IdentList*);
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
 
 protected:
-  ASTForm *f;
+  ASTFormPtr f;
 };
 
 class ASTForm_Ex0: public ASTForm_vf {
@@ -1140,11 +1169,15 @@ protected:
 class MonaAST {
 public:
   MonaAST(ASTForm *f, ASTForm *a) :
-    formula(f), assertion(a), lastPosVar(-1), allPosVar(-1) {}
-  ~MonaAST() {delete formula; delete assertion;}
+    MonaAST(ASTFormPtr(f), ASTFormPtr(a)) {}
+  explicit MonaAST(ASTFormPtr f) :
+    MonaAST(std::move(f), std::make_shared<ASTForm_True>(dummyPos)) {}
+  MonaAST(ASTFormPtr f, ASTFormPtr a) :
+    formula(std::move(f)), assertion(std::move(a)), lastPosVar(-1), allPosVar(-1) {}
+  ~MonaAST() = default;
   
-  ASTForm *formula;
-  ASTForm *assertion;
+  ASTFormPtr formula;
+  ASTFormPtr assertion;
 
   DequeGC<ASTForm *> verifyformlist;
   Deque<char *>      verifytitlelist;

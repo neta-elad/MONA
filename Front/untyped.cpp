@@ -1838,7 +1838,11 @@ Expression_Declaration::genAST(MonaAST &monaAST)
   if (f->order != oForm)
     TypeError("Type mismatch at expression", pos);
 
-  monaAST.formula = new ASTForm_And(monaAST.formula, (ASTForm *) f, dummyPos);
+  monaAST.formula = std::make_shared<ASTForm_And>(
+    std::move(monaAST.formula),
+    ASTFormPtr((ASTForm *) f),
+    dummyPos
+    );
 }
  
 //////////  Verify_Declaration ////////////////////////////////////////////////
@@ -1867,7 +1871,11 @@ Execute_Declaration::genAST(MonaAST &monaAST)
   if (f->order != oForm)
     TypeError("Type mismatch at expression", pos);
 
-  monaAST.formula = new ASTForm_IdLeft(monaAST.formula, (ASTForm *) f, dummyPos);
+  monaAST.formula = std::make_shared<ASTForm_IdLeft>(
+    std::move(monaAST.formula),
+    ASTFormPtr((ASTForm *) f),
+    dummyPos
+    );
 }
  
 //////////  Assertion_Declaration /////////////////////////////////////////////
@@ -1880,8 +1888,11 @@ Assertion_Declaration::genAST(MonaAST &monaAST)
   if (f->order != oForm)
     TypeError("Type mismatch at 'assert'", pos);
 
-  monaAST.assertion = new ASTForm_And(monaAST.assertion, (ASTForm *) f, 
-				      dummyPos);
+monaAST.assertion = std::make_shared<ASTForm_And>(
+    std::move(monaAST.assertion),
+    ASTFormPtr((ASTForm *) f),
+    dummyPos
+  );
 }
  
 //////////  Constant_Declaration //////////////////////////////////////////////

@@ -8,10 +8,9 @@
 #include "offsets.h"
 #include "predlib.h"
 #include "untyped.h"
-extern "C" {
-    #include "mem.h"
-}
+
 #include "model.h"
+#include "utils.h"
 
 Options options;
 MonaUntypedAST *untypedAST;
@@ -32,74 +31,25 @@ struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
+
+
 int main() {
     std::cout << "Testing libmona\n";
-    char bString[]{'b', 0};
-    Name b{bString, dummyPos};
-    const Ident bId = symbolTable.insertVar(&b, Varname0, nullptr);
+    Ident bId = addVar("b", Varname0);
+    Ident b2Id = addVar("b2", Varname0);
 
-    ASTForm_Var0 *bVar = new ASTForm_Var0{bId, dummyPos};
-    ASTForm_True *trueForm = new ASTForm_True{dummyPos};
-    MonaAST *ast = new MonaAST{bVar, trueForm};
+    ASTFormPtr bVar = std::make_shared<ASTForm_Var0>(bId, dummyPos);
+    ASTFormPtr b2Var = std::make_shared<ASTForm_Var0>(b2Id, dummyPos);
+    ASTFormPtr andFormula = std::make_shared<ASTForm_And>(bVar, std::make_shared<ASTForm_Not>(b2Var, dummyPos), dummyPos);
+    std::unique_ptr<MonaAST> ast = std::make_unique<MonaAST>(andFormula);
     ast->globals.insert(bId);
+    ast->globals.insert(b2Id);
 
-    codeTable = new CodeTable;
-    VarCode formulaCode = ast->formula->makeCode();
-    DFA *dfa = formulaCode.DFATranslate();
-    formulaCode.remove();
+    Model model = getModel(*ast);
 
-    int numVars = ast->globals.size();
-
-    // copy from symbol table
-    char **vnames = new char*[numVars];
-    unsigned *offs = new unsigned[numVars];
-    char *types = new char[numVars];
-    int **univs = new int*[numVars];
-    int *trees = new int[numVars];
-    IdentList sign, freeVars;
-    int ix = 0;
-    IdentList::iterator id;
-    for (id = ast->globals.begin(); id != ast->globals.end(); id++, ix++) {
-        vnames[ix] = symbolTable.lookupSymbol(*id);
-        offs[ix] = offsets.off(*id);
-        sign.push_back(ix);
-        freeVars.push_back(*id);
-        switch (symbolTable.lookupType(*id)) {
-            case VarnameTree:
-                trees[ix] = 1;
-            break;
-            default:
-                trees[ix] = 0;
-        }
-        IdentList *uu = symbolTable.lookupUnivs(*id);
-        if (uu) {
-            unsigned j;
-            univs[ix] = new int[uu->size()+1];
-            for (j = 0; j < uu->size(); j++)
-                univs[ix][j] = symbolTable.lookupUnivNumber(uu->get(j));
-            univs[ix][j] = -1;
-        }
-        else
-            univs[ix] = nullptr;
-        switch (symbolTable.lookupType(*id))
-        {
-            case Varname0:
-                types[ix] = 0;
-            break;
-            case Varname1:
-                types[ix] = 1;
-            break;
-            default:
-                types[ix] = 2;
-            break;
-        }
+    if (model.empty()) {
+        printf("Model is empty\n");
     }
-    // end copy from symbol table
-
-    char *example = dfaMakeExample(dfa, 1, numVars, offs);
-
-    Model model = buildModelFromExample(example, numVars, vnames, types);
-    mem_free(example);
 
     for (auto const& [name, value] : model) {
         const char *name_cstr = name.c_str();
@@ -119,14 +69,6 @@ int main() {
             }
         }, value);
     }
-
-    delete[] vnames;
-    delete[] offs;
-    delete[] types;
-    delete[] univs;
-    delete[] trees;
-
-    delete ast;
 
     return 0;
 }

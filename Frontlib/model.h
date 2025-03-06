@@ -6,9 +6,12 @@
 #include <string>
 #include <map>
 
+#include "ast.h"
+
 using Value = std::variant<bool, int, std::set<int>>;
 using Model = std::map<std::string, Value>;
 
-Model buildModelFromExample(char *example, int numVars, char **names, char *types);
+Model getModel(const MonaAST &ast);
+
 
 #endif //MODEL_H

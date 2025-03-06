@@ -35,7 +35,10 @@ examples: build
 	@echo "All done!"
 
 .PHONY: build
-build: configure
+build: configure just-build
+
+.PHONY: just-build
+just-build:
 	cmake --build "$(BUILD_DIR)" -j8
 
 .PHONY: configure
