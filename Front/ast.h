@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "ident.h"
 #include "codetable.h"
@@ -104,6 +105,20 @@ public:
 class ASTList: public DequeGC<AST*> {
 public:
   void dump();
+};
+
+using ASTPtr = std::shared_ptr<AST>;
+
+class SharedASTList : public std::vector<ASTPtr> {
+public:
+  SharedASTList(ASTList *alist) :
+    std::vector<ASTPtr>(fromAstList(alist)) {}
+  SharedASTList() {}
+
+  void dump();
+  std::unique_ptr<ASTList> toAstList();
+
+  static std::vector<ASTPtr> fromAstList(ASTList *alist);
 };
 
 class ASTTerm: public AST {
@@ -742,7 +757,7 @@ protected:
 
 class ASTForm_True: public ASTForm {
 public:
-  ASTForm_True(Pos p) :
+  ASTForm_True(Pos p = dummyPos) :
     ASTForm(aTrue, p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
@@ -828,7 +843,9 @@ public:
 class ASTForm_Equal1: public ASTForm_tt {
 public:
   ASTForm_Equal1(ASTTerm1 *t1, ASTTerm1 *t2, Pos p) :
-    ASTForm_tt(aEqual1, t1, t2, p) {}
+    ASTForm_tt(aEqual1, t1, t2, p) {} //todo(neta) delete
+  ASTForm_Equal1(ASTTerm1Ptr t1, ASTTerm1Ptr t2, Pos p = dummyPos) :
+    ASTForm_tt(aEqual1, std::move(t1), std::move(t2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -1069,19 +1086,19 @@ protected:
 
 class ASTForm_Call: public ASTForm {
 public:
-  ASTForm_Call(int nn, ASTList *alist, Pos p) :
-    ASTForm(aCall, p), args(alist), n(nn) {}
-  ~ASTForm_Call() {delete args;}
+  ASTForm_Call(int nn, SharedASTList alist, Pos p = dummyPos) :
+    ASTForm(aCall, p), args(std::move(alist)), n(nn) {}
+  ~ASTForm_Call() = default;
 
   void freeVars(IdentList*, IdentList*);
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
 
 protected:
-  ASTList *args;
+  SharedASTList args;
   int n;
 
-  VarCode fold(ASTList::iterator iter, IdentList &actuals, 
+  VarCode fold(SharedASTList::iterator iter, IdentList &actuals,
 	       SubstCode *subst = NULL);
 };
 

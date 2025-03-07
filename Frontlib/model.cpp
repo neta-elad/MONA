@@ -102,6 +102,8 @@ std::optional<Model> getModel(const MonaAST &ast) {
 
     char *example = dfaMakeExample(dfa, 1, numVars, offs);
 
+    dfaFree(dfa);
+
     if (!example) return {};
 
     Model model = buildModelFromExample(example, numVars, vnames, types);

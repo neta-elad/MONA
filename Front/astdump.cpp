@@ -91,6 +91,15 @@ ASTList::dump()
   }
 }
 
+void SharedASTList::dump() {
+  for (const auto &e : *this) {
+    cout << ",";
+    e->dump();
+  }
+}
+
+
+
 void 
 ASTUniv::dump()
 {
@@ -503,7 +512,7 @@ void
 ASTForm_Call::dump()
 {
   cout << "Call(" << symbolTable.lookupSymbol(n);
-  args->dump();
+  args.dump();
   cout << ")";
 }
 

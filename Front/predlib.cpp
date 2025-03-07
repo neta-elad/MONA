@@ -20,6 +20,8 @@
 
 #include "offsets.h"
 #include "predlib.h"
+
+#include <utility>
 #include "symboltable.h"
 
 extern Offsets offsets;
@@ -59,6 +61,17 @@ PredicateLib::insert(IdentList *formals,
 {
   insert(new PredLibEntry(formals, frees, bound,  
 			  formula, isMacro, name, source));
+}
+void
+PredicateLib::insert(IdentList *formals,
+		     IdentList *frees,
+		     IdentList *bound,
+		     ASTFormPtr formula,
+		     bool       isMacro,
+		     int        name)
+{
+  insert(new PredLibEntry(formals, frees, bound,
+			  std::move(formula), isMacro, name, nullptr));
 }
 
 PredLibEntry *

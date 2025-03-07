@@ -1,6 +1,7 @@
 #include <string>
 #include <utility>
 #include <variant>
+#include <format>
 
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
@@ -64,12 +65,16 @@ Identifiers set_union(const Identifiers &i1, const Identifiers &i2) {
     return std::move(result);
 }
 
+struct IdentContainer {
+    Ident ident;
+};
+
 struct BoolRef {
     Identifiers identifiers;
     ASTFormPtr form;
 };
 
-struct BoolIdent : BoolRef {
+struct BoolIdent : BoolRef, IdentContainer {
     BoolIdent(const std::string &name)
         : BoolIdent(addVar(name, Varname0)) {
     }
@@ -78,10 +83,8 @@ struct BoolIdent : BoolRef {
         : BoolRef{
               Identifiers{identt},
               std::make_shared<ASTForm_Var0>(identt)
-          }, ident(identt) {
+          }, IdentContainer{identt} {
     }
-
-    Ident ident;
 };
 
 struct ElementRef {
@@ -98,7 +101,7 @@ struct ElementRef {
     ASTTerm1Ptr term;
 };
 
-struct ElementIdent : ElementRef {
+struct ElementIdent : ElementRef, IdentContainer {
     ElementIdent(const std::string &name)
         : ElementIdent(addVar(name, Varname1)) {
     }
@@ -107,10 +110,8 @@ struct ElementIdent : ElementRef {
         : ElementRef(
               Identifiers{identt},
               std::make_shared<ASTTerm1_Var1>(identt)
-          ), ident(identt) {
+          ), IdentContainer{identt} {
     }
-
-    Ident ident;
 };
 
 struct SetRef {
@@ -118,7 +119,7 @@ struct SetRef {
     ASTTerm2Ptr term;
 };
 
-struct SetIdent : SetRef {
+struct SetIdent : SetRef, IdentContainer {
     SetIdent(const std::string &name)
         : SetIdent(addVar(name, Varname2)) {
     }
@@ -127,10 +128,19 @@ struct SetIdent : SetRef {
         : SetRef{
               Identifiers{identt},
               std::make_shared<ASTTerm2_Var2>(identt)
-          }, ident(identt) {
+          }, IdentContainer{identt} {
     }
+};
 
-    Ident ident;
+struct ASTPtrContainer {
+    ASTPtrContainer(const BoolRef &ref) :
+        ptr(ref.form) {}
+    ASTPtrContainer(const ElementRef &ref) :
+        ptr(ref.term) {}
+    ASTPtrContainer(const SetRef &ref) :
+        ptr(ref.term) {}
+
+    ASTPtr ptr;
 };
 
 ElementRef makeInt(int i) {
@@ -216,7 +226,7 @@ BoolRef makeForall1(const ElementIdent &id, const BoolRef &f) {
 BoolRef makeForall1(nb::iterable ids, const BoolRef &f) {
     IdentList *list = new IdentList;
     Identifiers identifiers;
-    for (auto id : nb::iter(ids)) {
+    for (auto id: nb::iter(ids)) {
         Ident ident = nb::cast<ElementIdent>(id).ident;
         identifiers.insert(ident);
         list->insert(ident);
@@ -239,7 +249,7 @@ BoolRef makeExists1(const ElementIdent &id, const BoolRef &f) {
 BoolRef makeExists1(nb::iterable ids, const BoolRef &f) {
     IdentList *list = new IdentList;
     Identifiers identifiers;
-    for (auto id : nb::iter(ids)) {
+    for (auto id: nb::iter(ids)) {
         Ident ident = nb::cast<ElementIdent>(id).ident;
         identifiers.insert(ident);
         list->insert(ident);
@@ -259,8 +269,73 @@ std::optional<Model> solve(const BoolRef &formula) {
     return getModel(ast);
 }
 
-std::string lookupSymbol(Ident ident) {
-    return symbolTable.lookupSymbol(ident);
+template<typename T>
+std::string lookupSymbol(const T &container) {
+    return symbolTable.lookupSymbol(container.ident);
+}
+
+struct PredRef : IdentContainer {
+    int n;
+};
+
+PredRef makePred(const std::string &name, nb::iterable ids, const BoolRef &f) {
+    IdentList *list = new IdentList;
+    for (auto id: nb::iter(ids)) {
+        Ident ident = nb::cast<IdentContainer>(id).ident;
+        list->insert(ident);
+    }
+
+    int n = list->size();
+
+    Ident pred = addPredicate(name);
+
+    IdentList *bound = list->copy(), *frees = new IdentList;
+    f.form->freeVars(frees, bound);
+
+    predicateLib.insert(
+        bound,
+        frees,
+        list,
+        f.form,
+        false,
+        pred
+    );
+
+    return PredRef{pred, n};
+}
+
+BoolRef makePredCall(const PredRef &pred, nb::args args) {
+    SharedASTList salist;
+    for (auto arg : args) {
+        salist.push_back(nb::cast<ASTPtrContainer>(arg).ptr);
+    }
+
+    Ident id = pred.ident;
+    int badArg;
+
+    auto alist = salist.toAstList();
+
+    return makeTrue();
+
+/*
+
+    switch (predicateLib.testTypes(id, par, &no)) {
+
+    case tWrongNoParameters:
+    TypeError("Wrong number of parameters to predicate '"
+    + String(name->str) + "'", pos);
+
+    case tWrongParameterType:
+    char t[10];
+    snprintf(t, sizeof(t), "%i",no);
+    TypeError("Wrong type of parameter " + (String) t + " at predicate '"
+    + String(name->str) + "'", pos);
+
+    case tOK: ;
+    }
+
+    return new ASTForm_Call(id, par, pos);
+*/
 }
 
 
@@ -279,21 +354,32 @@ NB_MODULE(pymona, m) {
     nb::class_<BoolRef>(m, "BoolRef");
     nb::class_<BoolIdent, BoolRef>(m, "BoolIdent")
             .def(nb::init<std::string>())
-            .def("__str__",
-                 [](const BoolIdent &ident) { return lookupSymbol(ident.ident); });
+            .def("__str__", &lookupSymbol<BoolIdent>);
 
     nb::class_<ElementRef>(m, "ElementRef")
             .def(nb::init_implicit<int>());
     nb::class_<ElementIdent, ElementRef>(m, "ElementIdent")
             .def(nb::init<std::string>())
-            .def("__str__",
-                 [](const ElementIdent &ident) { return lookupSymbol(ident.ident); });
+            .def("__str__", &lookupSymbol<ElementIdent>);
 
     nb::class_<SetRef>(m, "SetRef");
     nb::class_<SetIdent, SetRef>(m, "SetIdent")
             .def(nb::init<std::string>())
-            .def("__str__",
-                 [](const SetIdent &ident) { return lookupSymbol(ident.ident); });
+            .def("__str__", &lookupSymbol<SetIdent>);
+
+    nb::class_<IdentContainer>(m, "IdentContainer")
+        .def(nb::init_implicit<BoolIdent>())
+        .def(nb::init_implicit<ElementIdent>())
+        .def(nb::init_implicit<SetIdent>());
+
+    nb::class_<ASTPtrContainer>(m, "ASTPtrContainer")
+        .def(nb::init_implicit<BoolRef>())
+        .def(nb::init_implicit<ElementRef>())
+        .def(nb::init_implicit<SetRef>());
+
+    nb::class_<PredRef>(m, "PredRef")
+        .def("__call__", &makePredCall)
+        .def("__str__", &lookupSymbol<PredRef>);
 
     m.def("int_", &makeInt);
     m.def("less_than", &makeLessThan);
@@ -308,13 +394,15 @@ NB_MODULE(pymona, m) {
     m.def("not_", &makeNot);
 
     m.def("forall1",
-        nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeForall1));
+          nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeForall1));
     m.def("forall1",
-        nb::overload_cast<nb::iterable, const BoolRef &>(&makeForall1));
+          nb::overload_cast<nb::iterable, const BoolRef &>(&makeForall1));
     m.def("exists1",
-        nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeExists1));
+          nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeExists1));
     m.def("exists1",
-        nb::overload_cast<nb::iterable, const BoolRef &>(&makeExists1));
+          nb::overload_cast<nb::iterable, const BoolRef &>(&makeExists1));
 
     m.def("solve", &solve);
+
+    m.def("pred", &makePred);
 }

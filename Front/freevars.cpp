@@ -315,10 +315,9 @@ ASTForm_Let2::freeVars(IdentList *free, IdentList *bound)
 void 
 ASTForm_Call::freeVars(IdentList *free, IdentList *bound)
 {
-  ASTList::iterator i;
-  for (i = args->begin(); i != args->end(); i++)
-    if ((*i)->order != oUniv)
-      (*i)->freeVars(free, bound);
+  for (const auto &i : args)
+    if (i->order != oUniv)
+      i->freeVars(free, bound);
 
   PredLibEntry *p = predicateLib.lookup(n);
   bound->insert(p->bound);

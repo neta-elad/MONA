@@ -31,7 +31,7 @@ public:
 
   void make(IdentList &idents);
   void dump(char *to, size_t bufsize);
-  int operator==(const Signature &);
+  int operator==(const Signature &) const;
 
   unsigned  size;
   int      *sign;

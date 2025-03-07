@@ -1585,6 +1585,26 @@ ASTForm_Let2::makeCode(SubstCode *subst)
 
 /*#warning BUGFIX: REMOVED UPDATEUNIVS*/
 
+std::vector<ASTPtr> SharedASTList::fromAstList(ASTList *alist) {
+    std::vector<ASTPtr> vec;
+    vec.reserve(alist->size());
+    for (auto iter = alist->begin(); iter != alist->end(); iter++) {
+        vec.push_back(ASTPtr(*iter));
+    }
+    alist->reset();
+    delete alist;
+    return vec;
+}
+
+std::unique_ptr<ASTList> SharedASTList::toAstList() {
+    std::unique_ptr<ASTList> alist = std::make_unique<ASTList>();
+    for (const auto &e : *this) {
+        alist->push_back(e.get());
+    }
+    return std::move(alist);
+}
+
+
 VarCode
 ASTForm_Call::makeCode(SubstCode *subst)
 {
@@ -1594,16 +1614,17 @@ ASTForm_Call::makeCode(SubstCode *subst)
     // make new substitution list
     SubstCode *newsubst = new SubstCode[p->formals->size() + 1];
 
-    ASTList::iterator actual;
+    SharedASTList::iterator actual;
     IdentList::iterator formal;
     Deque<ASTForm*> oldRestrictions;
     Deque<Ident> oldIdents;
     unsigned k;
     IdentList actuals;
 
-    for (actual = args->begin(), formal = p->formals->begin(), k = 0; 
-	 actual != args->end(); actual++, formal++, k++) {
+    for (actual = args.begin(), formal = p->formals->begin(), k = 0;
+	 actual != args.end(); actual++, formal++, k++) {
       newsubst[k].formal = *formal;
+      AST *elm = actual->get();
 
       switch ((*actual)->order) {
 
@@ -1611,7 +1632,7 @@ ASTForm_Call::makeCode(SubstCode *subst)
       case oTerm2: 
 	{
 	  newsubst[k].kind = sTermCode;
-	  newsubst[k].termCode = ((ASTTerm *) (*actual))->makeCode(subst);
+	  newsubst[k].termCode = ((ASTTerm *) elm)->makeCode(subst);
 	  Ident var = newsubst[k].termCode->var;
 	  oldRestrictions.push_back(symbolTable.lookupRestriction(var));
 	  oldIdents.push_back(var);
@@ -1624,13 +1645,13 @@ ASTForm_Call::makeCode(SubstCode *subst)
       case oForm:
 	newsubst[k].kind = sVarCode;
 	newsubst[k].varCode = new VarCode;
-	*newsubst[k].varCode = ((ASTForm *) (*actual))->makeCode(subst);
+	*newsubst[k].varCode = ((ASTForm *) elm)->makeCode(subst);
 	break; // we don't have restrictions on var0's (yet?)
 
       case oUniv:
 	newsubst[k].kind = sTermCode;
 	newsubst[k].termCode = 
-	  substitute12UCode(subst, ((ASTUniv *) (*actual))->u);
+	  substitute12UCode(subst, ((ASTUniv *) elm)->u);
 	break;
 
       default:
@@ -1669,18 +1690,19 @@ ASTForm_Call::makeCode(SubstCode *subst)
   }
   else { // predicate call
     IdentList actuals;
-    return fold(args->begin(), actuals, subst);
+    return fold(args.begin(), actuals, subst);
   }
 }
 
 VarCode
-ASTForm_Call::fold(ASTList::iterator iter,
+ASTForm_Call::fold(SharedASTList::iterator iter,
 		   IdentList &actuals, 
 		   SubstCode *subst)
 {
+  AST *elm = iter->get();
   VarCode res;
   
-  if (iter == args->end()) { // end of recursion
+  if (iter == args.end()) { // end of recursion
     PredLibEntry *p = predicateLib.lookup(n);
 
     // make dummy node
@@ -1740,7 +1762,7 @@ ASTForm_Call::fold(ASTList::iterator iter,
     case oTerm1: 
     case oTerm2: 
       {
-	ASTTermCode *ct = ((ASTTerm *) (*iter))->makeCode(subst);
+	ASTTermCode *ct = ((ASTTerm *) elm)->makeCode(subst);
 	actuals.push_back(ct->var);
 	
 	res = project(andList(fold(++iter, actuals, subst), 
@@ -1752,7 +1774,7 @@ ASTForm_Call::fold(ASTList::iterator iter,
     
     case oForm:
       {
-	VarCode vc = ((ASTForm *) (*iter))->makeCode(subst);
+	VarCode vc = ((ASTForm *) elm)->makeCode(subst);
 	
 	if (vc.code->kind == cBoolVar) {
 	  Ident id = *(vc.vars->begin());
@@ -1779,7 +1801,7 @@ ASTForm_Call::fold(ASTList::iterator iter,
     
     case oUniv:
       {
-	ASTTermCode *ct = substitute12UCode(subst, ((ASTUniv *) (*iter))->u);
+	ASTTermCode *ct = substitute12UCode(subst, ((ASTUniv *) elm)->u);
 	actuals.push_back(ct->var);
 
 	res = project(andList(fold(++iter, actuals, subst), 

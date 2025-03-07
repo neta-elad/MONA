@@ -28,3 +28,15 @@ Ident addVar(const std::string& name_str, MonaTypeTag tag) {
     stringsToIdents[name_str] = ident;
     return ident;
 }
+
+Ident addPredicate(const std::string& name_str) {
+    if (stringsToIdents.find(name_str) != stringsToIdents.end()) {
+        return stringsToIdents[name_str];
+    }
+    strings.push_back(std::make_unique<std::string>(name_str));
+    auto& name_str_copy = strings.back();
+    Name name{name_str_copy->data(), dummyPos};
+    Ident ident = symbolTable.insertPred(&name);
+    stringsToIdents[name_str] = ident;
+    return ident;
+}

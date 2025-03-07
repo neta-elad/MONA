@@ -94,7 +94,7 @@ Signature::dump(char *to, size_t bufsize)
 }
 
 int
-Signature::operator==(const Signature &s) 
+Signature::operator==(const Signature &s) const
 {
   if (s.hashvalue != hashvalue || s.size != size)
     return false;

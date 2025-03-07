@@ -21,6 +21,8 @@
 #ifndef __PREDLIB_H
 #define __PREDLIB_H
 
+#include <utility>
+
 #include "ast.h"
 #include "signature.h"
 #include "st_dfa.h"
@@ -33,13 +35,17 @@ public:
 	       ASTForm *eFormula, bool eIsMacro, int eName, char *eSource) :
     formals(eFormals), frees(eFrees), bound(eBound), ast(eFormula),
     isMacro(eIsMacro), name(eName), source(eSource) {}
+  PredLibEntry(IdentList *eFormals, IdentList *eFrees, IdentList *eBound,
+	       ASTFormPtr eFormula, bool eIsMacro, int eName, char *eSource) :
+    formals(eFormals), frees(eFrees), bound(eBound), ast(std::move(eFormula)),
+    isMacro(eIsMacro), name(eName), source(eSource) {}
   ~PredLibEntry() 
-  {delete formals; delete frees; delete bound; delete ast;}
+  {delete formals; delete frees; delete bound;}
 
   IdentList *formals;
   IdentList *frees;
   IdentList *bound;
-  ASTForm   *ast;
+  ASTFormPtr ast;
   bool       isMacro;
   Ident      name;
   char      *source;
@@ -65,8 +71,10 @@ public:
   PredicateLib();
   ~PredicateLib();
   
-  void          insert(IdentList *formals, IdentList *frees, IdentList *bound,
+  void insert(IdentList *formals, IdentList *frees, IdentList *bound,
 		       ASTForm *formula, bool isMacro, int name, char *source);
+  void insert(IdentList *formals, IdentList *frees, IdentList *bound,
+		       ASTFormPtr formula, bool isMacro, int name);
   PredLibEntry *lookup(Ident);
   TestResult    testTypes(Ident name, ASTList *acts, int *no = NULL);
   PredLibEntry *first();

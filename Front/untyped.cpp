@@ -250,7 +250,7 @@ UntypedExp_Name::genAST()
 	TypeError("Wrong number of parameters to predicate '"
 		  + String(name->str) + "'", pos);
 
-      return new ASTForm_Call(id, empty, pos);
+      return new ASTForm_Call(id, {}, pos);
     }
   
   case Constname:

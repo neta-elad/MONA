@@ -23,35 +23,70 @@ bool regenerate = false;
 
 int main() {
     std::cout << "Testing libmona\n";
-    Ident bId = addVar("b", Varname0);
-    Ident i1Id = addVar("i1", Varname1);
-    Ident i2Id = addVar("i2", Varname1);
-    Ident b2Id = addVar("b2", Varname0);
+    Ident aId = addVar("a", Varname1);
+    Ident bId = addVar("b", Varname1);
+    Ident cId = addVar("c", Varname1);
+    Ident xId = addVar("x", Varname1);
+    Ident yId = addVar("y", Varname1);
 
-    IdentList *blist = new IdentList(bId);
-    IdentList *blist2 = blist->copy();
+    std::unique_ptr<IdentList> abList = std::make_unique<IdentList>(aId);
+    abList->insert(bId);
 
-    IdentList *i1list = new IdentList(i1Id);
-    IdentList *i2list = new IdentList(i2Id);
-
-    ASTFormPtr bVar = std::make_shared<ASTForm_Var0>(bId);
-    ASTFormPtr formula = std::make_shared<ASTForm_All1>(
-        nullptr,
-        i1list,
-        std::make_shared<ASTForm_Ex1>(
-            nullptr,
-            i2list,
-            std::make_shared<ASTForm_Less>(
-                std::make_shared<ASTTerm1_Var1>(i2Id),
-                std::make_shared<ASTTerm1_Var1>(i1Id)
-            )
-        )
+    auto cVar = std::make_shared<ASTTerm1_Var1>(cId);
+    ASTFormPtr cIs5 = std::make_shared<ASTForm_Equal1>(
+        cVar,
+        std::make_shared<ASTTerm1_Int>(5)
     );
-    std::unique_ptr<MonaAST> ast = std::make_unique<MonaAST>(formula);
-    ast->globals.insert(bId);
-    ast->globals.insert(i1Id);
-    ast->globals.insert(i2Id);
 
+    auto aVar = std::make_shared<ASTTerm1_Var1>(aId);
+    auto bVar = std::make_shared<ASTTerm1_Var1>(bId);
+
+    ASTFormPtr aBetweenBAndC = std::make_shared<ASTForm_And>(
+        std::make_shared<ASTForm_Less>(bVar, aVar),
+        std::make_shared<ASTForm_Less>(aVar, cVar)
+    );
+
+    IdentList *frees = new IdentList, *bound = abList->copy();
+
+    aBetweenBAndC->freeVars(frees, bound);
+
+    Ident pred = addPredicate("a_between_b_and_c");
+    predicateLib.insert(
+        bound,
+        frees,
+        abList.release(),
+        aBetweenBAndC,
+        false,
+        pred
+    );
+
+    ASTTerm1Ptr xVar = std::make_shared<ASTTerm1_Var1>(xId);
+    ASTTerm1Ptr yVar = std::make_shared<ASTTerm1_Var1>(yId);
+
+    SharedASTList parList;
+    parList.push_back(xVar);
+    parList.push_back(yVar);
+
+    ASTFormPtr callPred = std::make_shared<ASTForm_Call>(
+        pred,
+        parList,
+        dummyPos
+    );
+
+    ASTFormPtr formula = std::make_shared<ASTForm_And>(
+        cIs5,
+        callPred
+    );
+
+
+    std::unique_ptr<MonaAST> ast = std::make_unique<MonaAST>(formula);
+    ast->globals.insert(aId);
+    ast->globals.insert(bId);
+    ast->globals.insert(cId);
+    ast->globals.insert(xId);
+    ast->globals.insert(yId);
+
+    // std::optional<Model> model;
     std::optional<Model> model = getModel(*ast);
 
     if (!model.has_value()) {
