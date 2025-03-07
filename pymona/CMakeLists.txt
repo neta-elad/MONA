@@ -22,4 +22,3 @@ find_package(nanobind CONFIG REQUIRED)
 
 nanobind_add_module(pymona pymona.cpp)
 target_link_libraries(pymona PRIVATE mona)
-target_compile_features(pymona PRIVATE cxx_std_17)
