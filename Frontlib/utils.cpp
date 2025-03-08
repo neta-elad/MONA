@@ -15,28 +15,33 @@ extern SymbolTable symbolTable;
  */
 
 std::vector<std::unique_ptr<std::string>> strings;
-std::map<std::string, Ident> stringsToIdents;
+std::map<std::string, Ident, std::less<>> stringsToIdents;
+std::map<Ident, std::string_view> identsToStrings;
 
-Ident addVar(const std::string& name_str, MonaTypeTag tag) {
-    if (stringsToIdents.find(name_str) != stringsToIdents.end()) {
-        return stringsToIdents[name_str];
+Ident addVar(std::string_view name_str, MonaTypeTag tag) {
+    if (const auto &iter = stringsToIdents.find(name_str);
+        iter != stringsToIdents.end()) {
+        return iter->second;
     }
     strings.push_back(std::make_unique<std::string>(name_str));
-    auto& name_str_copy = strings.back();
+    auto &name_str_copy = strings.back();
     Name name{name_str_copy->data(), dummyPos};
     Ident ident = symbolTable.insertVar(&name, tag, nullptr);
-    stringsToIdents[name_str] = ident;
+    stringsToIdents[std::string(name_str)] = ident;
+    identsToStrings[ident] = *name_str_copy;
     return ident;
 }
 
-Ident addPredicate(const std::string& name_str) {
-    if (stringsToIdents.find(name_str) != stringsToIdents.end()) {
-        return stringsToIdents[name_str];
+Ident addPredicate(std::string_view name_str) {
+    if (const auto &iter = stringsToIdents.find(name_str);
+        iter != stringsToIdents.end()) {
+        return iter->second;
     }
     strings.push_back(std::make_unique<std::string>(name_str));
-    auto& name_str_copy = strings.back();
+    auto &name_str_copy = strings.back();
     Name name{name_str_copy->data(), dummyPos};
     Ident ident = symbolTable.insertPred(&name);
-    stringsToIdents[name_str] = ident;
+    stringsToIdents[std::string(name_str)] = ident;
+    identsToStrings[ident] = *name_str_copy;
     return ident;
 }

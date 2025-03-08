@@ -89,7 +89,7 @@ PredicateLib::lookup(Ident id)
 }
 
 TestResult
-PredicateLib::testTypes(Ident name, ASTList *acts, int *no) 
+PredicateLib::testTypes(Ident name, ASTList *acts, int *no, bool loose)
 { 
   PredLibEntry *entry = lookup(name);
 
@@ -111,17 +111,17 @@ PredicateLib::testTypes(Ident name, ASTList *acts, int *no)
     switch ((*a)->order) {
 
     case oTerm1:
-      if (t != Parname1 && t != ParnameU)
+      if (t != Parname1 && t != ParnameU && (!loose || t != Varname1))
 	return tWrongParameterType;
       break;
 
     case oTerm2:
-      if (t != Parname2 && t != ParnameU)
+      if (t != Parname2 && t != ParnameU && (!loose || t != Varname2))
 	return tWrongParameterType;
       break;
 
     case oForm:
-      if (t != Parname0)
+      if (t != Parname0 && (!loose || t != Varname0))
 	return tWrongParameterType;
       break;
 

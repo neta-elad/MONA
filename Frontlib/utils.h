@@ -6,8 +6,8 @@
 #include "ident.h"
 #include "symboltable.h"
 
-Ident addVar(const std::string &name_str, MonaTypeTag tag);
-Ident addPredicate(const std::string &name_str);
+Ident addVar(std::string_view name_str, MonaTypeTag tag);
+Ident addPredicate(std::string_view name_str);
 
 // helper type for the visitor
 template<class... Ts>
