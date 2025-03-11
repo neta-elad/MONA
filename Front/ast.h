@@ -922,6 +922,8 @@ class ASTForm_Biimpl: public ASTForm_ff {
 public:
   ASTForm_Biimpl(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) delete
     ASTForm_ff(aBiimpl, f1, f2, p) {}
+  ASTForm_Biimpl(ASTFormPtr f1, ASTFormPtr f2, Pos p = dummyPos) :
+    ASTForm_ff(aBiimpl, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
