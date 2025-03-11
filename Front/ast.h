@@ -999,7 +999,9 @@ public:
 class ASTForm_Ex2: public ASTForm_uvf {
 public:
   ASTForm_Ex2(IdentList *ul, IdentList *vl, ASTForm *f, Pos p) :
-    ASTForm_uvf(aEx2, ul, vl, f, p) {}
+  ASTForm_uvf(aEx2, ul, vl, f, p) {} // todo(neta) delete
+  ASTForm_Ex2(IdentList *ul, IdentList *vl, ASTFormPtr f, Pos p = dummyPos) :
+    ASTForm_uvf(aEx1, ul, vl, std::move(f), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -1030,7 +1032,9 @@ public:
 class ASTForm_All2: public ASTForm_uvf {
 public:
   ASTForm_All2(IdentList *ul, IdentList *vl, ASTForm *f, Pos p) :
-    ASTForm_uvf(aAll2, ul, vl, f, p) {}
+  ASTForm_uvf(aAll2, ul, vl, f, p) {} // todo(neta) delete
+  ASTForm_All2(IdentList *ul, IdentList *vl, ASTFormPtr f, Pos p = dummyPos) :
+    ASTForm_uvf(aAll1, ul, vl, std::move(f), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();

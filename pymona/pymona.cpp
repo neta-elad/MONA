@@ -198,7 +198,10 @@ BoolRef makeForall1(const ElementIdent &id, const BoolRef &f) {
     };
 }
 
-BoolRef makeForall1(nb::iterable ids, const BoolRef &f) {
+BoolRef makeForall1Iter(
+    nb::typed<nb::iterable, ElementIdent> ids,
+    const BoolRef &f
+) {
     IdentList *list = new IdentList;
     Identifiers identifiers;
     for (auto id: nb::iter(ids)) {
@@ -221,7 +224,10 @@ BoolRef makeExists1(const ElementIdent &id, const BoolRef &f) {
     };
 }
 
-BoolRef makeExists1(nb::iterable ids, const BoolRef &f) {
+BoolRef makeExists1Iter(
+    nb::typed<nb::iterable, ElementIdent> ids,
+    const BoolRef &f
+) {
     IdentList *list = new IdentList;
     Identifiers identifiers;
     for (auto id: nb::iter(ids)) {
@@ -233,6 +239,58 @@ BoolRef makeExists1(nb::iterable ids, const BoolRef &f) {
     return BoolRef{
         identifiers,
         std::make_shared<ASTForm_Ex1>(nullptr, list, f.form)
+    };
+}
+
+BoolRef makeForall2(const SetIdent &id, const BoolRef &f) {
+    IdentList *list = new IdentList(id.ident);
+    return BoolRef{
+        set_union(id.identifiers, f.identifiers),
+        std::make_shared<ASTForm_All2>(nullptr, list, f.form)
+    };
+}
+
+BoolRef makeForall2Iter(
+    nb::typed<nb::iterable, SetIdent> ids,
+    const BoolRef &f
+) {
+    IdentList *list = new IdentList;
+    Identifiers identifiers;
+    for (auto id: nb::iter(ids)) {
+        Ident ident = nb::cast<SetIdent>(id).ident;
+        identifiers.insert(ident);
+        list->insert(ident);
+    }
+    identifiers.insert(f.identifiers.begin(), f.identifiers.end());
+    return BoolRef{
+        identifiers,
+        std::make_shared<ASTForm_All2>(nullptr, list, f.form)
+    };
+}
+
+BoolRef makeExists2(const SetIdent &id, const BoolRef &f) {
+    IdentList *list = new IdentList(id.ident);
+    return BoolRef{
+        set_union(id.identifiers, f.identifiers),
+        std::make_shared<ASTForm_Ex2>(nullptr, list, f.form)
+    };
+}
+
+BoolRef makeExists2Iter(
+    nb::typed<nb::iterable, SetIdent> ids,
+    const BoolRef &f
+) {
+    IdentList *list = new IdentList;
+    Identifiers identifiers;
+    for (auto id: nb::iter(ids)) {
+        Ident ident = nb::cast<SetIdent>(id).ident;
+        identifiers.insert(ident);
+        list->insert(ident);
+    }
+    identifiers.insert(f.identifiers.begin(), f.identifiers.end());
+    return BoolRef{
+        identifiers,
+        std::make_shared<ASTForm_Ex2>(nullptr, list, f.form)
     };
 }
 
@@ -253,7 +311,11 @@ struct PredRef : IdentContainer {
     int n;
 };
 
-PredRef makePred(std::string_view name, nb::iterable ids, const BoolRef &f) {
+PredRef makePred(
+    std::string_view name,
+    nb::typed<nb::iterable, std::variant<BoolIdent, ElementIdent, SetIdent> > ids,
+    const BoolRef &f
+) {
     IdentList *list = new IdentList;
     for (auto id: nb::iter(ids)) {
         Ident ident = nb::cast<IdentContainer>(id).ident;
@@ -373,14 +435,15 @@ NB_MODULE(pymona, m) {
     m.def("implies", &makeImplies);
     m.def("not_", &makeNot);
 
-    m.def("forall1",
-          nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeForall1));
-    m.def("forall1",
-          nb::overload_cast<nb::iterable, const BoolRef &>(&makeForall1));
-    m.def("exists1",
-          nb::overload_cast<const ElementIdent &, const BoolRef &>(&makeExists1));
-    m.def("exists1",
-          nb::overload_cast<nb::iterable, const BoolRef &>(&makeExists1));
+    m.def("forall1", &makeForall1);
+    m.def("forall1", &makeForall1Iter);
+    m.def("exists1", &makeExists1);
+    m.def("exists1", &makeExists1Iter);
+
+    m.def("forall2", &makeForall2);
+    m.def("forall2", &makeForall2Iter);
+    m.def("exists2", &makeExists2);
+    m.def("exists2", &makeExists2Iter);
 
     m.def("solve", &solve);
 
