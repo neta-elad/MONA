@@ -858,7 +858,9 @@ public:
 class ASTForm_Equal2: public ASTForm_TT {
 public:
   ASTForm_Equal2(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
-    ASTForm_TT(aEqual2, T1, T2, p) {}
+    ASTForm_TT(aEqual2, T1, T2, p) {} //todo(neta) delete
+  ASTForm_Equal2(ASTTerm2Ptr T1, ASTTerm2Ptr T2, Pos p = dummyPos) :
+    ASTForm_TT(aEqual2, std::move(T1), std::move(T2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
