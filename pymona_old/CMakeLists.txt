@@ -20,18 +20,18 @@ execute_process(
         OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(pymona
+nanobind_add_module(pymona_old
     STABLE_ABI
     NB_STATIC
-    pymona.cpp
+    pymona_old.cpp
 )
-target_link_libraries(pymona PRIVATE mona)
+target_link_libraries(pymona_old PRIVATE mona)
 nanobind_add_stub(
-        pymona_stub
-        MODULE pymona
-        OUTPUT pymona.pyi
-        PYTHON_PATH $<TARGET_FILE_DIR:pymona>
-        DEPENDS pymona
+        pymona_old_stub
+        MODULE pymona_old
+        OUTPUT pymona_old.pyi
+        PYTHON_PATH $<TARGET_FILE_DIR:pymona_old>
+        DEPENDS pymona_old
         MARKER_FILE py.typed
         PATTERN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/pymona-pattern.txt"
 )

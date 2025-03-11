@@ -395,7 +395,7 @@ BoolRef makePredCall(const PredRef &pred, nb::args args) {
 }
 
 
-NB_MODULE(pymona, m) {
+NB_MODULE(pymona_old, m) {
     m.doc() = "Python bindings for the WS1S/WS2S solver MONA";
 
     nb::class_<BoolRef>(m, "BoolRef");

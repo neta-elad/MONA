@@ -28,4 +28,4 @@ add_subdirectory(Frontlib)
 add_subdirectory(Bin)
 add_subdirectory(Examples)
 add_subdirectory(tests)  # Test executables
-add_subdirectory(pymona)
+add_subdirectory(pymona_old)
