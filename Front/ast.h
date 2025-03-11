@@ -322,14 +322,16 @@ protected:
 
 class ASTForm_T: public ASTForm {
 public:
-  ASTForm_T(ASTKind kind, ASTTerm2 *TT, Pos p) :
+  ASTForm_T(ASTKind kind, ASTTerm2 *TT, Pos p) : //todo(neta) delete
     ASTForm(kind, p), T(TT) {}
-  ~ASTForm_T() {delete T;}
+  ASTForm_T(ASTKind kind, ASTTerm2Ptr TT, Pos p) : //todo(neta) delete
+    ASTForm(kind, p), T(std::move(TT)) {}
+  ~ASTForm_T() = default;
     
   void freeVars(IdentList*, IdentList*);
 
 protected:
-  ASTTerm2 *T;
+  ASTTerm2Ptr T;
 };
 
 class ASTForm_TT: public ASTForm {
@@ -632,7 +634,7 @@ protected:
 
 class ASTTerm2_Empty: public ASTTerm2 {
 public:
-  ASTTerm2_Empty(Pos p) :
+  ASTTerm2_Empty(Pos p = dummyPos) :
     ASTTerm2(aEmpty, p) {}
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
@@ -812,8 +814,10 @@ protected:
 
 class ASTForm_EmptyPred: public ASTForm_T {
 public:
-  ASTForm_EmptyPred(ASTTerm2 *T, Pos p) :
+  ASTForm_EmptyPred(ASTTerm2 *T, Pos p) : //todo(neta) delete
     ASTForm_T(aEmptyPred, T, p) {}
+  ASTForm_EmptyPred(ASTTerm2Ptr T, Pos p = dummyPos) :
+    ASTForm_T(aEmptyPred, std::move(T), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
