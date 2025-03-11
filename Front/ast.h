@@ -335,14 +335,16 @@ protected:
 class ASTForm_TT: public ASTForm {
 public:
   ASTForm_TT(ASTKind kind, ASTTerm2 *TT1, ASTTerm2 *TT2, Pos p) :
-    ASTForm(kind, p), T1(TT1), T2(TT2) {}
-  ~ASTForm_TT() {delete T1; delete T2;}
+    ASTForm(kind, p), T1(TT1), T2(TT2) {} //todo(neta) delete
+  ASTForm_TT(ASTKind kind, ASTTerm2Ptr TT1, ASTTerm2Ptr TT2, Pos p) :
+    ASTForm(kind, p), T1(std::move(TT1)), T2(std::move(TT2)) {} //todo(neta) delete
+  ~ASTForm_TT() = default;
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
-  ASTTerm2 *T1;
-  ASTTerm2 *T2;
+  ASTTerm2Ptr T1;
+  ASTTerm2Ptr T2;
 };
 
 class ASTForm_tt: public ASTForm {
@@ -833,8 +835,10 @@ protected:
 
 class ASTForm_Sub: public ASTForm_TT {
 public:
-  ASTForm_Sub(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
+  ASTForm_Sub(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) : //todo(neta) delete
     ASTForm_TT(aSub, T1, T2, p) {}
+  ASTForm_Sub(ASTTerm2Ptr T1, ASTTerm2Ptr T2, Pos p = dummyPos) :
+    ASTForm_TT(aSub, std::move(T1), std::move(T2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -891,8 +895,10 @@ public:
 
 class ASTForm_LessEq: public ASTForm_tt {
 public:
-  ASTForm_LessEq(ASTTerm1 *t1, ASTTerm1 *t2, Pos p) :
+  ASTForm_LessEq(ASTTerm1 *t1, ASTTerm1 *t2, Pos p) : //todo(neta) delete
     ASTForm_tt(aLessEq, t1, t2, p) {}
+  ASTForm_LessEq(ASTTerm1Ptr t1, ASTTerm1Ptr t2, Pos p = dummyPos) :
+    ASTForm_tt(aLessEq, std::move(t1), std::move(t2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
