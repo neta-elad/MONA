@@ -255,13 +255,15 @@ protected:
 class ASTTerm1_tn: public ASTTerm1 {
 public:
   ASTTerm1_tn(ASTKind kind, ASTTerm1 *tt, int nn, Pos p) :
-    ASTTerm1(kind, p), t(tt), n(nn) {}
-  ~ASTTerm1_tn() {delete t;}
+    ASTTerm1(kind, p), t(tt), n(nn) {} //todo(neta) remove
+  ASTTerm1_tn(ASTKind kind, ASTTerm1Ptr tt, int nn, Pos p) :
+    ASTTerm1(kind, p), t(std::move(tt)), n(nn) {}
+  ~ASTTerm1_tn() = default;
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
-  ASTTerm1 *t;
+  ASTTerm1Ptr t;
   int n;
 }; 
 
@@ -510,7 +512,9 @@ public:
 class ASTTerm1_Plus: public ASTTerm1_tn {
 public:
   ASTTerm1_Plus(ASTTerm1 *t, int n, Pos p) :
-    ASTTerm1_tn(aPlus1, t, n, p) {}
+    ASTTerm1_tn(aPlus1, t, n, p) {} //todo(neta) remove
+  ASTTerm1_Plus(ASTTerm1Ptr t, int n, Pos p = dummyPos) :
+    ASTTerm1_tn(aPlus1, std::move(t), n, p) {}
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
