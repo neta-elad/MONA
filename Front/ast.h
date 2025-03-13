@@ -523,7 +523,9 @@ public:
 class ASTTerm1_Minus: public ASTTerm1_tn {
 public:
   ASTTerm1_Minus(ASTTerm1 *t, int n, Pos p) :
-    ASTTerm1_tn(aMinus1, t, n, p) {}
+    ASTTerm1_tn(aMinus1, t, n, p) {} // todo(neta) remove
+  ASTTerm1_Minus(ASTTerm1Ptr t, int n, Pos p = dummyPos) :
+    ASTTerm1_tn(aMinus1, std::move(t), n, p) {}
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   VarCode unfold(int v1, int v2, int n, SubstCode *subst, Pos pos);
