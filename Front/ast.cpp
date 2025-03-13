@@ -844,20 +844,19 @@ ASTTerm2_Set::makeCode(SubstCode *subst)
 {
   Ident var = symbolTable.insertFresh(Varname2);
 
-  if (elements->empty()) 
+  if (elements.empty())
     return new ASTTermCode(var,
 			    true,
 			    codeTable->insert(new Code_EqEmpty(var, pos)));
 
   ASTTermCode *res = NULL;
-  ASTList::iterator i;
-  for (i = elements->begin(); i != elements->end(); i++) {
+  for (const auto &i : elements) {
     ASTTermCode *ct;
 
-    if ((*i)->kind == aInterval)
-      ct = ((ASTTerm2 *) *i)->makeCode(subst);
+    if (i->kind == aInterval)
+      ct = ((ASTTerm2 *) i.get())->makeCode(subst);
     else { // if not an interval, element must be first-order
-      ct = ((ASTTerm1 *) *i)->makeCode(subst);
+      ct = ((ASTTerm1 *) i.get())->makeCode(subst);
 
       Ident t = 
 	symbolTable.insertFresh(Varname2, copy(symbolTable.lookupUnivs(ct->var)));

@@ -248,11 +248,10 @@ ASTTerm2_Setminus::dump()
 void 
 ASTTerm2_Set::dump()
 {
-  ASTList::iterator i;
   cout << "Set(";
-  for (i = elements->begin(); i != elements->end();) {
+  for (auto i = elements.begin(); i != elements.end();) {
     (*i)->dump();
-    if (++i != elements->end()) 
+    if (++i != elements.end())
       cout << ",";
   }
   cout << ")";

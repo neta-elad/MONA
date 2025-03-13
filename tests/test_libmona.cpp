@@ -28,6 +28,7 @@ int main() {
     Ident cId = addVar("c", Varname1);
     Ident xId = addVar("x", Varname1);
     Ident yId = addVar("y", Varname1);
+    Ident sId = addVar("s", Varname2);
 
     std::unique_ptr<IdentList> abList = std::make_unique<IdentList>(aId);
     abList->insert(bId);
@@ -40,6 +41,7 @@ int main() {
 
     auto aVar = std::make_shared<ASTTerm1_Var1>(aId);
     auto bVar = std::make_shared<ASTTerm1_Var1>(bId);
+    auto sVar = std::make_shared<ASTTerm2_Var2>(sId);
 
     ASTFormPtr aBetweenBAndC = std::make_shared<ASTForm_And>(
         std::make_shared<ASTForm_Less>(bVar, aVar),
@@ -67,6 +69,17 @@ int main() {
     parList.push_back(xVar);
     parList.push_back(yVar);
 
+    SharedASTList setList;
+    setList.push_back(aVar);
+    setList.push_back(bVar);
+    setList.push_back(cVar);
+    setList.push_back(xVar);
+    setList.push_back(yVar);
+
+    ASTTerm2Ptr set = std::make_shared<ASTTerm2_Set>(setList);
+
+    ASTFormPtr equalSets = std::make_shared<ASTForm_Equal2>(sVar, set);
+
     ASTFormPtr callPred = std::make_shared<ASTForm_Call>(
         pred,
         parList,
@@ -78,13 +91,19 @@ int main() {
         callPred
     );
 
+    ASTFormPtr extendedFormula = std::make_shared<ASTForm_And>(
+        formula,
+        equalSets
+    );
 
-    std::unique_ptr<MonaAST> ast = std::make_unique<MonaAST>(formula);
+
+    std::unique_ptr<MonaAST> ast = std::make_unique<MonaAST>(extendedFormula);
     ast->globals.insert(aId);
     ast->globals.insert(bId);
     ast->globals.insert(cId);
     ast->globals.insert(xId);
     ast->globals.insert(yId);
+    ast->globals.insert(sId);
 
     // std::optional<Model> model;
     std::optional<Model> model = getModel(*ast);

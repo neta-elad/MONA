@@ -226,9 +226,8 @@ ASTTerm2_Up::freeVars(IdentList *free, IdentList *bound)
 void 
 ASTTerm2_Set::freeVars(IdentList *free, IdentList *bound)
 {
-  ASTList::iterator i;
-  for (i = elements->begin(); i != elements->end(); i++)
-    (*i)->freeVars(free, bound);
+  for (const auto &element : elements)
+    element->freeVars(free, bound);
 }
   
 void 

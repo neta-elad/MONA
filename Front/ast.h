@@ -676,16 +676,16 @@ public:
 
 class ASTTerm2_Set: public ASTTerm2 {
 public:
-  ASTTerm2_Set(ASTList *elms, Pos p) :
-    ASTTerm2(aSet, p), elements(elms) {}
-  ~ASTTerm2_Set() {delete elements;}
+  ASTTerm2_Set(SharedASTList elms, Pos p = dummyPos) :
+    ASTTerm2(aSet, p), elements(std::move(elms)) {}
+  ~ASTTerm2_Set() = default;
 
   void freeVars(IdentList*, IdentList*);
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
 
 protected:
-  ASTList *elements;
+  SharedASTList elements;
 };
 
 class ASTTerm2_Plus: public ASTTerm2_Tn {
