@@ -231,13 +231,15 @@ protected:
 class ASTTerm1_T: public ASTTerm1 {
 public:
   ASTTerm1_T(ASTKind kind, ASTTerm2 *TT, Pos p) :
-    ASTTerm1(kind, p), T(TT) {}
-  ~ASTTerm1_T() {delete T;}
+    ASTTerm1(kind, p), T(TT) {} //todo(neta) delete
+  ASTTerm1_T(ASTKind kind, ASTTerm2Ptr TT, Pos p) :
+    ASTTerm1(kind, p), T(std::move(TT)) {}
+  ~ASTTerm1_T() = default;
 
   void freeVars(IdentList*, IdentList*);
 
 protected:
-  ASTTerm2 *T;
+  ASTTerm2Ptr T;
 };
 
 class ASTTerm1_t: public ASTTerm1 {
@@ -555,7 +557,9 @@ public:
 class ASTTerm1_Min: public ASTTerm1_T {
 public:
   ASTTerm1_Min(ASTTerm2 *T, Pos p) :
-    ASTTerm1_T(aMin, T, p) {}
+    ASTTerm1_T(aMin, T, p) {} // todo(neta) delete
+  ASTTerm1_Min(ASTTerm2Ptr T, Pos p = dummyPos) :
+    ASTTerm1_T(aMin, std::move(T), p) {}
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
@@ -564,7 +568,9 @@ public:
 class ASTTerm1_Max: public ASTTerm1_T {
 public:
   ASTTerm1_Max(ASTTerm2 *T, Pos p) :
-    ASTTerm1_T(aMax, T, p) {}
+    ASTTerm1_T(aMax, T, p) {} //todo(neta) - delete
+  ASTTerm1_Max(ASTTerm2Ptr T, Pos p = dummyPos) :
+    ASTTerm1_T(aMax, std::move(T), p) {}
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
