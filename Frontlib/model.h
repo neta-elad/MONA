@@ -10,9 +10,9 @@
 
 
 struct Model {
-    std::map<std::string, bool> bools;
-    std::map<std::string, int> ints;
-    std::map<std::string, std::set<int>> sets;
+    std::map<std::string, bool, std::less<>> bools;
+    std::map<std::string, int, std::less<>> ints;
+    std::map<std::string, std::set<int>, std::less<>> sets;
 };
 
 std::optional<Model> getModel(const MonaAST &ast);
