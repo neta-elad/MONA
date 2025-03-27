@@ -23,6 +23,7 @@ bool regenerate = false;
 
 int main() {
     std::cout << "Testing libmona\n";
+    Ident pId = addVar("p", Varname0);
     Ident aId = addVar("a", Varname1);
     Ident bId = addVar("b", Varname1);
     Ident cId = addVar("c", Varname1);
@@ -42,6 +43,8 @@ int main() {
     auto aVar = std::make_shared<ASTTerm1_Var1>(aId);
     auto bVar = std::make_shared<ASTTerm1_Var1>(bId);
     auto sVar = std::make_shared<ASTTerm2_Var2>(sId);
+
+    auto pVar = std::make_shared<ASTForm_Var0>(pId);
 
     ASTFormPtr aBetweenBAndC = std::make_shared<ASTForm_And>(
         std::make_shared<ASTForm_Less>(bVar, aVar),
@@ -96,39 +99,45 @@ int main() {
         equalSets
     );
 
+    ASTFormPtr withP = std::make_shared<ASTForm_And>(
+        extendedFormula,
+        pVar
+    );
 
-    std::unique_ptr<MonaAST> ast = std::make_unique<MonaAST>(extendedFormula);
+
+    std::unique_ptr<MonaAST> ast = std::make_unique<MonaAST>(withP);
     ast->globals.insert(aId);
     ast->globals.insert(bId);
     ast->globals.insert(cId);
     ast->globals.insert(xId);
     ast->globals.insert(yId);
     ast->globals.insert(sId);
+    ast->globals.insert(pId);
 
-    // std::optional<Model> model;
     std::optional<Model> model = getModel(*ast);
 
     if (!model.has_value()) {
         printf("Model is empty\n");
     }
 
-    for (auto const &[name, value]: model.value()) {
-        const char *name_cstr = name.c_str();
-        std::visit(overloaded{
-                       [&name_cstr](bool arg) {
-                           printf("Boolean %s = %s\n", name_cstr, arg ? "true" : "false");
-                       },
-                       [&name_cstr](int arg) {
-                           printf("Integer %s = %d\n", name_cstr, arg);
-                       },
-                       [&name_cstr](const std::set<int> &arg) {
-                           printf("Set %s = {", name_cstr);
-                           for (auto &j: arg) {
-                               printf("%d; ", j);
-                           }
-                           printf("}\n");
-                       }
-                   }, value);
+    std::cout << "Booleans:\n";
+    for (auto const &[name, value] : model.value().bools) {
+        std::cout << name << " = " << (value ? "true" : "false") << std::endl;
+    }
+
+    std::cout << "Integers:\n";
+    for (auto const &[name, value] : model.value().ints) {
+        std::cout << name << " = " << value << std::endl;
+    }
+
+    std::cout << "Sets:\n";
+
+    for (auto const &[name, value] : model.value().sets) {
+        printf("%s = {", name.c_str());
+        for (auto &j: value) {
+            printf("%d; ", j);
+        }
+        printf("}\n");
     }
 
     return 0;

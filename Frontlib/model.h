@@ -1,7 +1,6 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include <variant>
 #include <set>
 #include <string>
 #include <map>
@@ -9,8 +8,12 @@
 
 #include "ast.h"
 
-using Value = std::variant<bool, int, std::set<int>>;
-using Model = std::map<std::string, Value>;
+
+struct Model {
+    std::map<std::string, bool> bools;
+    std::map<std::string, int> ints;
+    std::map<std::string, std::set<int>> sets;
+};
 
 std::optional<Model> getModel(const MonaAST &ast);
 
