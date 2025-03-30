@@ -281,19 +281,24 @@ protected:
   ASTTerm1 *t1;
   ASTTerm1 *t2;
   int n;
-}; 
+};
 
-class ASTTerm2_TT: public ASTTerm2 {
+class ASTTerm2_TT : public ASTTerm2 {
 public:
-  ASTTerm2_TT(ASTKind kind, ASTTerm2 *TT1, ASTTerm2 *TT2, Pos p) :
-    ASTTerm2(kind, p), T1(TT1), T2(TT2) {}
-  ~ASTTerm2_TT() {delete T1; delete T2;}
+  ASTTerm2_TT(ASTKind kind, ASTTerm2 *TT1, ASTTerm2 *TT2, Pos p)
+    : ASTTerm2_TT(kind, ASTTerm2Ptr(TT1), ASTTerm2Ptr(TT2), p) {
+  } // todo(neta.e) delete
+  ASTTerm2_TT(ASTKind kind, ASTTerm2Ptr TT1, ASTTerm2Ptr TT2, Pos p = dummyPos)
+    : ASTTerm2(kind, p), T1(std::move(TT1)), T2(std::move(TT2)) {
+  }
+
+  ~ASTTerm2_TT() = default;
 
   void freeVars(IdentList*, IdentList*);
   
 protected:
-  ASTTerm2 *T1;
-  ASTTerm2 *T2;
+  ASTTerm2Ptr T1;
+  ASTTerm2Ptr T2;
 };
 
 class ASTTerm2_Tn: public ASTTerm2 {
@@ -656,7 +661,9 @@ public:
 class ASTTerm2_Union: public ASTTerm2_TT {
 public:
   ASTTerm2_Union(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
-    ASTTerm2_TT(aUnion, T1, T2, p) {}
+    ASTTerm2_TT(aUnion, T1, T2, p) {} // todo(neta) remove
+  ASTTerm2_Union(ASTTerm2Ptr T1, ASTTerm2Ptr T2, Pos p = dummyPos) :
+    ASTTerm2_TT(aUnion, std::move(T1), std::move(T2), p) {} // todo(neta) remove
   
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
@@ -665,7 +672,9 @@ public:
 class ASTTerm2_Inter: public ASTTerm2_TT {
 public:
   ASTTerm2_Inter(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
-    ASTTerm2_TT(aInter, T1, T2, p) {}
+    ASTTerm2_TT(aInter, T1, T2, p) {} //todo(neta) remove
+  ASTTerm2_Inter(ASTTerm2Ptr T1, ASTTerm2Ptr T2, Pos p = dummyPos) :
+    ASTTerm2_TT(aInter, std::move(T1), std::move(T2), p) {}
   
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
@@ -674,7 +683,9 @@ public:
 class ASTTerm2_Setminus: public ASTTerm2_TT {
 public:
   ASTTerm2_Setminus(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
-    ASTTerm2_TT(aSetminus, T1, T2, p) {}
+    ASTTerm2_TT(aSetminus, T1, T2, p) {} //todo(neta) delete
+  ASTTerm2_Setminus(ASTTerm2Ptr T1, ASTTerm2Ptr T2, Pos p = dummyPos) :
+    ASTTerm2_TT(aSetminus, std::move(T1), std::move(T2), p) {}
   
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
