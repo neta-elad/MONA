@@ -896,7 +896,9 @@ public:
 class ASTForm_NotEqual1: public ASTForm_tt {
 public:
   ASTForm_NotEqual1(ASTTerm1 *t1, ASTTerm1 *t2, Pos p) :
-    ASTForm_tt(aNotEqual1, t1, t2, p) {}
+    ASTForm_tt(aNotEqual1, t1, t2, p) {} //todo(neta) delete
+  ASTForm_NotEqual1(ASTTerm1Ptr t1, ASTTerm1Ptr t2, Pos p = dummyPos) :
+    ASTForm_tt(aNotEqual1, std::move(t1), std::move(t2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
@@ -905,7 +907,9 @@ public:
 class ASTForm_NotEqual2: public ASTForm_TT {
 public:
   ASTForm_NotEqual2(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
-    ASTForm_TT(aNotEqual2, T1, T2, p) {}
+    ASTForm_TT(aNotEqual2, T1, T2, p) {} // todo(neta) delete
+  ASTForm_NotEqual2(ASTTerm2Ptr T1, ASTTerm2Ptr T2, Pos p = dummyPos) :
+    ASTForm_TT(aNotEqual2, std::move(T1), std::move(T2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
