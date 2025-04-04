@@ -793,7 +793,7 @@ public:
 
 class ASTForm_False: public ASTForm {
 public:
-  ASTForm_False(Pos p) :
+  ASTForm_False(Pos p = dummyPos) :
     ASTForm(aFalse, p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
@@ -804,7 +804,7 @@ class ASTForm_In: public ASTForm_tT {
 public:
   ASTForm_In(ASTTerm1 *t1, ASTTerm2 *T2, Pos p) : //todo(neta) delete
     ASTForm_tT(aIn, t1, T2, p) {}
-  ASTForm_In(ASTTerm1Ptr t1, ASTTerm2Ptr T2, Pos p) :
+  ASTForm_In(ASTTerm1Ptr t1, ASTTerm2Ptr T2, Pos p = dummyPos) :
     ASTForm_tT(aIn, std::move(t1), std::move(T2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
@@ -950,7 +950,7 @@ class ASTForm_Impl: public ASTForm_ff {
 public:
   ASTForm_Impl(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) remove
     ASTForm_ff(aImpl, f1, f2, p) {}
-  ASTForm_Impl(ASTFormPtr f1, ASTFormPtr f2, Pos p) :
+  ASTForm_Impl(ASTFormPtr f1, ASTFormPtr f2, Pos p = dummyPos) :
     ASTForm_ff(aImpl, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
@@ -994,7 +994,7 @@ class ASTForm_Or: public ASTForm_ff {
 public:
   ASTForm_Or(ASTForm *f1, ASTForm *f2, Pos p) : //todo(neta) delete
     ASTForm_ff(aOr, f1, f2, p) {}
-  ASTForm_Or(ASTFormPtr f1, ASTFormPtr f2, Pos p) :
+  ASTForm_Or(ASTFormPtr f1, ASTFormPtr f2, Pos p = dummyPos) :
     ASTForm_ff(aOr, std::move(f1), std::move(f2), p) {}
 
   VarCode makeCode(SubstCode *subst = NULL);
