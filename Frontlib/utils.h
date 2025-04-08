@@ -5,6 +5,7 @@
 
 #include "symboltable.h"
 
+void clear();
 Ident addVar(std::string_view name_str, MonaTypeTag tag);
 Ident addPredicate(std::string_view name_str);
 

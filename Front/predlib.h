@@ -79,6 +79,7 @@ public:
   TestResult    testTypes(Ident name, ASTList *acts, int *no = NULL, bool loose = false);
   PredLibEntry *first();
   PredLibEntry *next();
+  void clear();
 };
 
 #endif

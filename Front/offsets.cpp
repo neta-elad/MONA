@@ -51,3 +51,8 @@ Offsets::reorder()
   */
   max_offset = offsetMap.size();
 }
+
+void Offsets::clear() {
+  offsetMap.reset();
+  max_offset = 0;
+}

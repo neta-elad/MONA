@@ -621,3 +621,9 @@ SymbolTable::dump()
     }
   }
 }
+
+void SymbolTable::clear() {
+  unsigned s = size;
+  this->~SymbolTable();
+  new (this) SymbolTable(s);
+}

@@ -115,6 +115,7 @@ std::optional<Model> getModel(const MonaAST &ast) {
     delete[] types;
     delete[] univs;
     delete[] trees;
+    delete codeTable;
 
     return model;
 }

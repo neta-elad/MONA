@@ -21,6 +21,12 @@ std::vector<std::unique_ptr<std::string>> strings;
 std::map<std::string, Ident, std::less<>> stringsToIdents;
 std::map<Ident, std::string_view> identsToStrings;
 
+void clear() {
+    strings.clear();
+    stringsToIdents.clear();
+    identsToStrings.clear();
+}
+
 Ident addVar(std::string_view name_str, MonaTypeTag tag) {
     if (const auto &iter = stringsToIdents.find(name_str);
         iter != stringsToIdents.end()) {

@@ -30,6 +30,7 @@ public:
   void reorder();
   int off(unsigned int id) {assert(id<=max_offset); return offsetMap.get(id);}
   int maxOffset() {return max_offset;};
+  void clear();
 
 protected:
   Deque<int> offsetMap;

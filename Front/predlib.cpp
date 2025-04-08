@@ -159,3 +159,8 @@ PredicateLib::next()
 
   return NULL;
 }
+
+void PredicateLib::clear() {
+  this->~PredicateLib();
+  new (this) PredicateLib();
+}

@@ -199,6 +199,8 @@ public:
 
   void        dump(); // dump contents
 
+  void        clear();
+
   unsigned  noIdents;       // total number of identifiers
   int       noSS;           // number of state spaces
   Ident     defaultIdent1;  // formal parameter for defaultwhere1
