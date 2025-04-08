@@ -3,6 +3,9 @@
 #include <vector>
 #include <map>
 
+#include "ident.h"
+
+
 extern SymbolTable symbolTable;
 
 
