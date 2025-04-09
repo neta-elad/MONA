@@ -37,17 +37,14 @@ PredicateLib::insert(PredLibEntry *p)
 
 PredicateLib::PredicateLib()
 {
-  table = new Deque<PredLibEntry*>[PREDLIB_SIZE];
 }
 
 PredicateLib::~PredicateLib()
 {
   int i;
-  Deque<PredLibEntry*>::iterator j;
   for (i = 0; i < PREDLIB_SIZE; i++)
-    for (j = table[i].begin(); j != table[i].end(); j++)
-      delete *j;
-  delete[] table;
+    for (const auto &j : table[i])
+      delete j;
 }
 
 void 
@@ -56,7 +53,7 @@ PredicateLib::insert(IdentList *formals,
 		     IdentList *bound,
 		     ASTForm   *formula,
 		     bool       isMacro,
-		     int        name,
+		     Ident      name,
 		     char      *source)
 {
   insert(new PredLibEntry(formals, frees, bound,  
@@ -68,10 +65,28 @@ PredicateLib::insert(IdentList *formals,
 		     IdentList *bound,
 		     ASTFormPtr formula,
 		     bool       isMacro,
-		     int        name)
+		     Ident      name)
 {
   insert(new PredLibEntry(formals, frees, bound,
 			  std::move(formula), isMacro, name, nullptr));
+}
+
+void
+PredicateLib::remove(Ident id) {
+  unsigned i = id % PREDLIB_SIZE;
+
+  std::vector<PredLibEntry *>::iterator pp;
+  for (pp = table[i].begin(); pp != table[i].end(); ++pp)
+    if ((*pp)->name == id)
+      break;
+
+  if ((*pp)->name == id) {
+    delete *pp;
+    table[i].erase(pp);
+    return;
+  }
+
+  invariant(false);
 }
 
 PredLibEntry *
@@ -79,10 +94,11 @@ PredicateLib::lookup(Ident id)
 {
   unsigned i = id % PREDLIB_SIZE;
 
-  PredLibEntry **pp;
-  for (pp = table[i].begin(); pp != table[i].end(); pp++)
-    if ((*pp)->name == id)
-      return *pp;
+  for (const auto &entry : table[i]) {
+    if (entry->name == id) {
+      return entry;
+    }
+  }
 
   invariant(false);
   return NULL;

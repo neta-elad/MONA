@@ -22,6 +22,7 @@
 #define __PREDLIB_H
 
 #include <utility>
+#include <vector>
 
 #include "ast.h"
 #include "signature.h"
@@ -60,21 +61,22 @@ enum TestResult {
 #define PREDLIB_SIZE 113
 
 class PredicateLib {
-  Deque<PredLibEntry*> *table; // hashtable Ident -> PredLibEntry
+  std::vector<PredLibEntry *> table[PREDLIB_SIZE];
 
   void insert(PredLibEntry *);
 
   int            idx;
-  PredLibEntry **current;
+  std::vector<PredLibEntry *>::iterator current;
 
 public:
   PredicateLib();
   ~PredicateLib();
   
   void insert(IdentList *formals, IdentList *frees, IdentList *bound,
-		       ASTForm *formula, bool isMacro, int name, char *source);
+		       ASTForm *formula, bool isMacro, Ident name, char *source);
   void insert(IdentList *formals, IdentList *frees, IdentList *bound,
-		       ASTFormPtr formula, bool isMacro, int name);
+		       ASTFormPtr formula, bool isMacro, Ident name);
+  void remove(Ident);
   PredLibEntry *lookup(Ident);
   TestResult    testTypes(Ident name, ASTList *acts, int *no = NULL, bool loose = false);
   PredLibEntry *first();

@@ -140,5 +140,7 @@ int main() {
         printf("}\n");
     }
 
+    predicateLib.remove(pred);
+
     return 0;
 }
