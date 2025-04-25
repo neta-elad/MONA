@@ -18,9 +18,10 @@
  * USA.
  */
 
-#include <stdlib.h>
 #include "offsets.h"
 
+#ifndef OPTIMIZE_OFFSETS
+#include <stdlib.h>
 #include <time.h>
 /*#warning USING RANDOM ORDERING*/
 
@@ -56,3 +57,5 @@ void Offsets::clear() {
   offsetMap.reset();
   max_offset = 0;
 }
+
+#endif // OPTIMIZE_OFFSETS

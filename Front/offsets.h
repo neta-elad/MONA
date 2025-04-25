@@ -24,17 +24,53 @@
 #include <assert.h>
 #include "deque.h"
 
+
+
+/**
+ * This class keeps a Deque where each index holds itself as a value.
+ * I.e., the buffer of offsetMap looks like: [0, 1, 2, 3, ...].
+ * It seems like there was some attempt to allow reordering of the offsetMap
+ * to improve construction of automata,
+ * but this was abandoned.
+ * Thus, we can optimize this entire class into no-ops.
+ *
+ * To disable this optimization, comment the following define
+ */
+#define OPTIMIZE_OFFSETS
+
+
 class Offsets {
 public:
+#ifndef OPTIMIZE_OFFSETS
   void insert();
   void reorder();
-  int off(unsigned int id) {assert(id<=max_offset); return offsetMap.get(id);}
-  int maxOffset() {return max_offset;};
+  int off(unsigned int id) {
+    assert(id<=max_offset);
+    return offsetMap.get(id);
+  }
   void clear();
+#else
+  void insert() {
+    max_offset++;
+  }
+  void reorder() {}
+  int off(unsigned int id) {
+    return id;
+  }
+  void clear() {
+    max_offset = 0;
+  }
+#endif
+
+  int maxOffset() const {return max_offset;}
+
 
 protected:
+#ifndef OPTIMIZE_OFFSETS
   Deque<int> offsetMap;
-  unsigned max_offset;
+#endif
+
+  unsigned max_offset = 0;
 };
 
 #endif
