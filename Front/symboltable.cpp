@@ -29,6 +29,79 @@ using std::cout;
 extern Offsets offsets;
 extern void TypeError(String, Pos &);
 
+// Entry classes
+class Entry {
+public:
+  Entry() {} // dummy
+  Entry(char *s, MonaTypeTag t, Ident i) :
+    string(s), monaTypeTag(t), ident(i) {}
+  virtual ~Entry() {};
+
+  char       *string;
+  MonaTypeTag monaTypeTag;
+  Ident       ident;
+};
+
+class VarEntry: public Entry {
+public:
+  VarEntry(char *s, MonaTypeTag t, Ident i, IdentList *u, bool f) :
+    Entry(s, t, i), universes(u), restriction(NULL), implicit(f) {}
+  ~VarEntry()
+  {delete universes; delete restriction;}
+
+  IdentList *universes; // always sorted set!
+  ASTForm   *restriction;
+  bool       implicit; // (only explicit variables can get default restriction)
+};
+
+class ConstEntry: public Entry {
+public:
+  ConstEntry(char *s, Ident i, int v) :
+    Entry(s, Constname, i), value(v) {}
+
+  int value;
+};
+
+class PredEntry: public Entry {
+public:
+  PredEntry(char *s, Ident i) :
+    Entry(s, Predname, i) {}
+};
+
+class StateSpaceEntry: public Entry {
+public:
+  StateSpaceEntry(char *s, Ident i, int v) :
+    Entry(s, Statespacename, i), number(v), type(-1) {}
+
+  int number;
+  Ident type; // -1 if not a type root
+};
+
+class UnivEntry: public Entry {
+public:
+  UnivEntry(char *s, Ident i, int n, char *p) :
+    Entry(s, Univname, i), number(n), pos(p) {}
+  UnivEntry(char *s, Ident i, int n, Ident t) :
+    Entry(s, Univname, i), number(n), pos(0), type(t) {}
+
+  int   number;
+  char *pos;
+  Ident type; /* only applicable if using types */
+};
+
+class TypeEntry: public Entry {
+public:
+  TypeEntry(char *s, Ident i) :
+    Entry(s, Typename, i), variants(0), number(-1), reached(false) {}
+  ~TypeEntry() {delete variants;}
+
+  ASTVariantList *variants;
+  int number;
+  bool reached;
+  IdentList statespaces;
+};
+// Entry classes (end)
+
 Ident
 SymbolTable::insert(Entry *e)
 {
@@ -46,7 +119,7 @@ SymbolTable::remove(int idx) // must be at end of Deque
   // might still be in use
 }
 
-SymbolTable::Entry&
+Entry&
 SymbolTable::lookup(Name *name)
 {
   int idx = hash(name->str);
