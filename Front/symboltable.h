@@ -22,6 +22,7 @@
 #define __SYMBOLTABLE_H
 
 #include <memory>
+#include <utility>
 
 #include "deque.h"
 #include "ast.h"
@@ -66,7 +67,9 @@ class SymbolTable {
                                    // this queue holds a non-owning reference
                                    // (the owning pointer is at identMap
 
-  Deque<int>     localStack;       // stack of hashtable indexes (-1 sentinel) 
+  Deque<int>     localStack;       // stack of hashtable indexes (-1 sentinel)
+  Deque<std::pair<int, Ident>>     freshStack;       // stack of "fresh" pairs of hashtable index and Ident (-1 sentinel)
+
   Deque<Entry*>  identMap;         // map Ident->Entry
                                    // owns the Entry
 
@@ -83,7 +86,8 @@ public:
 
   Ident  insertPred(Name*);
   Ident  insertVar(Name*, MonaTypeTag, IdentList *univs, 
-		   bool local = false, bool implicit = false);
+		   bool local = false, bool implicit = false,
+		   bool fresh = false);
   Ident  insertUniv(Name*, char *pos, bool dummy = false);
   Ident  insertUniv(Name*, Ident type);
   Ident  insertConst(Name*, int value);
@@ -98,6 +102,9 @@ public:
 
   void   openLocal();
   void   closeLocal();
+
+  void   openFresh();
+  void   closeFresh();
   
   Ident           lookupIdent(Name*);
   char           *lookupSymbol(Ident);

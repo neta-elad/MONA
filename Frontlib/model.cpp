@@ -47,6 +47,8 @@ Model buildModelFromExample(char *example, int numVars, char **names, char *type
 }
 
 std::optional<Model> getModel(const MonaAST &ast) {
+    symbolTable.openFresh();
+
     codeTable = new CodeTable;
     VarCode formulaCode = ast.formula->makeCode();
     DFA *dfa = formulaCode.DFATranslate();
@@ -116,6 +118,8 @@ std::optional<Model> getModel(const MonaAST &ast) {
     delete[] univs;
     delete[] trees;
     delete codeTable;
+
+    symbolTable.closeFresh();
 
     return model;
 }

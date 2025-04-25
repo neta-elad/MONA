@@ -169,7 +169,8 @@ SymbolTable::~SymbolTable()
   Deque<Entry*>::iterator l;
   for (l = identMap.begin(); 
        l != identMap.end(); l++)
-    delete *l;
+    if (*l != nullptr)
+      delete *l;
   
   unsigned i;
   Deque<char*>::iterator j;
@@ -210,13 +211,22 @@ SymbolTable::insertPred(Name *name)
 
 Ident 
 SymbolTable::insertVar(Name *name, MonaTypeTag type, 
-		       IdentList *univs, bool local, bool implicit)
+		       IdentList *univs, bool local, bool implicit,
+		       bool fresh
+		       )
 {
   if (local)
     localStack.push_back(hash(name->str));
   else
     check(name);
-  return insert(new VarEntry(name->str, type, noIdents, univs, implicit));
+
+
+  Ident result = insert(new VarEntry(name->str, type, noIdents, univs, implicit));
+
+  if (fresh)
+    freshStack.push_back({hash(name->str), result});
+
+  return result;
 }
 
 Ident 
@@ -292,7 +302,7 @@ SymbolTable::insertFresh(MonaTypeTag type, IdentList *univs, bool implicit)
   snprintf(n, bufsize, "<id%d>", noIdents);
   n = insertString(n);
   Name dummy = Name(n, dummyPos);
-  return insertVar(&dummy, type, univs, false, implicit);
+  return insertVar(&dummy, type, univs, false, implicit, true);
 }
 
 void 
@@ -307,6 +317,23 @@ SymbolTable::closeLocal()
   int i;
   while ((i = localStack.pop_back()) != -1)
     remove(i);
+}
+
+void
+SymbolTable::openFresh()
+{
+  freshStack.push_back({-1, -1});
+}
+
+void
+SymbolTable::closeFresh()
+{
+  std::pair<int, Ident> i;
+  while ((i = freshStack.pop_back()).first != -1) {
+    remove(i.first);
+    delete identMap.get(i.second);
+    identMap.set(i.second, nullptr);
+  }
 }
 
 Ident
@@ -618,6 +645,10 @@ SymbolTable::dump()
   Ident id;
   for (id = 0; id < (signed) noIdents; id++) {
     Entry *e = identMap.get(id);
+    if (e == nullptr) {
+      continue;
+    }
+
     char *type;
 
     switch (e->monaTypeTag) {
@@ -676,6 +707,9 @@ SymbolTable::dump()
     cout << "\nTypes:\n";
     for (id = 0; id < (signed) noIdents; id++) {
       Entry *e = identMap.get(id);
+      if (e == nullptr) {
+        continue;
+      }
       if (e->monaTypeTag == Typename) {
 	cout << " " << e->string << "=";
 	((TypeEntry *) e)->variants->dump();
@@ -685,6 +719,9 @@ SymbolTable::dump()
     cout << "\nUniverses:\n";
     for (id = 0; id < (signed) noIdents; id++) {
       Entry *e = identMap.get(id);
+      if (e == nullptr) {
+        continue;
+      }
       if (e->monaTypeTag == Univname) {
 	cout << " " << e->string << "[" << ((UnivEntry *) e)->pos << "]";
 	if (strcmp(e->string, "<dummy>")!=0)
