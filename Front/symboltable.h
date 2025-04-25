@@ -21,6 +21,8 @@
 #ifndef __SYMBOLTABLE_H
 #define __SYMBOLTABLE_H
 
+#include <memory>
+
 #include "deque.h"
 #include "ast.h"
 #include "printline.h"
@@ -61,8 +63,13 @@ class SymbolTable {
                                    // to keep and then free unused strings
 
   Deque<Entry*> *declarationTable; // hashtable String->Entry
+                                   // this queue holds a non-owning reference
+                                   // (the owning pointer is at identMap
+
   Deque<int>     localStack;       // stack of hashtable indexes (-1 sentinel) 
   Deque<Entry*>  identMap;         // map Ident->Entry
+                                   // owns the Entry
+
   IdentList      allUnivIds;       // all universe Idents, sorted
   IdentList      allRealUnivIds;   // allUnivIds except dummy
   IdentList      statespaceIds;    // all statespace IDs in order
