@@ -42,7 +42,7 @@ void
 SymbolTable::remove(int idx) // must be at end of Deque
 {
   declarationTable[idx].pop_back();
-  // don't delete and remove from indentMap since the entry
+  // don't delete and remove from identMap since the entry
   // might still be in use
 }
 
