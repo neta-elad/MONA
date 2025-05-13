@@ -737,3 +737,7 @@ void SymbolTable::clear() {
   this->~SymbolTable();
   new (this) SymbolTable(s);
 }
+
+void SymbolTable::stats() {
+  std::cout << std::format("{} symbols in table\n", symbols->size());
+}

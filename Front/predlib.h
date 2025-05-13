@@ -82,6 +82,7 @@ public:
   PredLibEntry *first();
   PredLibEntry *next();
   void clear();
+  void stats();
 };
 
 #endif

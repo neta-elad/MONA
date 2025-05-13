@@ -180,3 +180,7 @@ void PredicateLib::clear() {
   this->~PredicateLib();
   new (this) PredicateLib();
 }
+
+void PredicateLib::stats() {
+  std::cout << std::format("{} predicates\n", table->size());
+}

@@ -54,3 +54,12 @@ Ident addPredicate(std::string_view name_str) {
     identsToStrings[ident] = *name_str_copy;
     return ident;
 }
+
+void utils_stats() {
+    std::cout << std::format(
+                    "{} strings, {} stringsToIdents, {} identsToStrings\n",
+                    strings.size(),
+                    stringsToIdents.size(),
+                    identsToStrings.size()
+                );
+}

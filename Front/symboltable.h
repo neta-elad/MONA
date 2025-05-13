@@ -147,6 +147,7 @@ public:
   void        dump(); // dump contents
 
   void        clear();
+  void        stats();
 
   unsigned  noIdents;       // total number of identifiers
   int       noSS;           // number of state spaces
