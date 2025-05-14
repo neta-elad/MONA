@@ -112,11 +112,12 @@ std::optional<Model> getModel(const MonaAST &ast) {
 
     dfaFree(dfa);
 
-    if (!example) return {};
+    std::optional<Model> model = {};
 
-    Model model = buildModelFromExample(example, numVars, vnames, types);
-    mem_free(example);
-
+    if (example) {
+        model = buildModelFromExample(example, numVars, vnames, types);
+        mem_free(example);
+    }
 
     delete[] vnames;
     delete[] offs;
