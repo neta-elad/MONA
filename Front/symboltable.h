@@ -80,8 +80,9 @@ class SymbolTable {
   IdentList      allRealUnivIds;   // allUnivIds except dummy
   IdentList      statespaceIds;    // all statespace IDs in order
   unsigned       size;             // hashtable array size
+
+  bool           tmpMode;
   std::vector<int> tmpStack;       // stack of "tmp" hashtable indices,
-                                   //   starts with sentinel -1 when in tmp mode
 public:
    SymbolTable(int size);
   ~SymbolTable();

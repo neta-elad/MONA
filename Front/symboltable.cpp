@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ranges>
 #include "symboltable.h"
 #include "offsets.h"
 #include "code.h"
@@ -109,7 +110,7 @@ SymbolTable::insert(Entry *e)
   declarationTable[hash(e->string)].push_back(e);
   identMap.push_back(e);
   offsets.insert();
-  if (!tmpStack.empty()) {
+  if (tmpMode) {
     tmpStack.push_back(idx);
   }
   return noIdents++;
@@ -178,6 +179,7 @@ SymbolTable::SymbolTable(int s)
   defaultRestriction2 = NULL;
   declarationTable = new Deque<Entry*>[size];
   symbols = new Deque<char*>[size];
+  tmpMode = false;
   tmpStack = {};
 }
 
@@ -762,17 +764,17 @@ void SymbolTable::stats() {
 }
 
 void SymbolTable::openTmpMode() {
-  invariant(tmpStack.empty());
-  tmpStack.push_back(-1);
+  invariant(!tmpMode);
+  tmpMode = true;
 }
 
 void SymbolTable::closeTmpMode() {
-  invariant(!tmpStack.empty());
-  Ident ident;
-  while ((ident = tmpStack.back()) != -1) {
-    removeFull(ident);
-    tmpStack.pop_back();
+  invariant(tmpMode);
+
+  for (int idx : tmpStack | std::views::reverse) {
+    removeFull(idx);
   }
-  tmpStack.pop_back();
-  invariant(tmpStack.empty());
+
+  tmpStack.clear();
+  tmpMode = false;
 }
