@@ -105,9 +105,13 @@ public:
 Ident
 SymbolTable::insert(Entry *e)
 {
+  int idx = hash(e->string);
   declarationTable[hash(e->string)].push_back(e);
   identMap.push_back(e);
   offsets.insert();
+  if (!tmpStack.empty()) {
+    tmpStack.push_back(idx);
+  }
   return noIdents++;
 }
 
@@ -117,6 +121,20 @@ SymbolTable::remove(int idx) // must be at end of Deque
   declarationTable[idx].pop_back();
   // don't delete and remove from identMap since the entry
   // might still be in use
+}
+
+void
+SymbolTable::removeFull(int idx) // must be at end of Deque
+{
+  declarationTable[idx].pop_back();
+  Entry *e = identMap.pop_back();
+  if (e->monaTypeTag == Statespacename) {
+    noSS--;
+  }
+  delete e;
+
+  offsets.remove();
+  noIdents--;
 }
 
 Entry&
@@ -160,6 +178,7 @@ SymbolTable::SymbolTable(int s)
   defaultRestriction2 = NULL;
   declarationTable = new Deque<Entry*>[size];
   symbols = new Deque<char*>[size];
+  tmpStack = {};
 }
 
 SymbolTable::~SymbolTable()
@@ -740,4 +759,20 @@ void SymbolTable::clear() {
 
 void SymbolTable::stats() {
   std::cout << std::format("{} symbols in table\n", symbols->size());
+}
+
+void SymbolTable::openTmpMode() {
+  invariant(tmpStack.empty());
+  tmpStack.push_back(-1);
+}
+
+void SymbolTable::closeTmpMode() {
+  invariant(!tmpStack.empty());
+  Ident ident;
+  while ((ident = tmpStack.back()) != -1) {
+    removeFull(ident);
+    tmpStack.pop_back();
+  }
+  tmpStack.pop_back();
+  invariant(tmpStack.empty());
 }

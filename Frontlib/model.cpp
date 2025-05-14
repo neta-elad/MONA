@@ -8,6 +8,8 @@ extern "C" {
     #include "mem.h"
 }
 
+#define TMP_MODE_OPTIMIZATION
+
 extern SymbolTable symbolTable;
 extern CodeTable *codeTable;
 extern Offsets offsets;
@@ -47,7 +49,11 @@ Model buildModelFromExample(char *example, int numVars, char **names, char *type
 }
 
 std::optional<Model> getModel(const MonaAST &ast) {
-    symbolTable.openFresh();
+    // int maxOffset = offsets.maxOffset();
+    // symbolTable.openFresh();
+#ifdef TMP_MODE_OPTIMIZATION
+    symbolTable.openTmpMode();
+#endif
 
     codeTable = new CodeTable;
     VarCode formulaCode = ast.formula->makeCode();
@@ -119,7 +125,11 @@ std::optional<Model> getModel(const MonaAST &ast) {
     delete[] trees;
     delete codeTable;
 
-    symbolTable.closeFresh();
+    // symbolTable.closeFresh();
+    // offsets.maxOffset(maxOffset);
+#ifdef TMP_MODE_OPTIMIZATION
+    symbolTable.closeTmpMode();
+#endif
 
     return model;
 }

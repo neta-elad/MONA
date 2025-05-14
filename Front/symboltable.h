@@ -55,6 +55,7 @@ class Entry;
 class SymbolTable {
   Ident  insert(Entry*);
   void   remove(int idx); // must be last-in-first-out order
+  void   removeFull(int idx); // must be last-in-first-out order
   Entry &lookup(Name*);
   void   check(Name*);
   int    hash(char*);
@@ -65,9 +66,11 @@ class SymbolTable {
 
   Deque<Entry*> *declarationTable; // hashtable String->Entry
                                    // this queue holds a non-owning reference
-                                   // (the owning pointer is at identMap
+                                   // (the owning pointer is at identMap)
 
   Deque<int>     localStack;       // stack of hashtable indexes (-1 sentinel)
+
+  //todo: remove fresh stack
   Deque<std::pair<int, Ident>>     freshStack;       // stack of "fresh" pairs of hashtable index and Ident (-1 sentinel)
 
   Deque<Entry*>  identMap;         // map Ident->Entry
@@ -77,7 +80,8 @@ class SymbolTable {
   IdentList      allRealUnivIds;   // allUnivIds except dummy
   IdentList      statespaceIds;    // all statespace IDs in order
   unsigned       size;             // hashtable array size
-
+  std::vector<int> tmpStack;       // stack of "tmp" hashtable indices,
+                                   //   starts with sentinel -1 when in tmp mode
 public:
    SymbolTable(int size);
   ~SymbolTable();
@@ -148,6 +152,9 @@ public:
 
   void        clear();
   void        stats();
+
+  void        openTmpMode();
+  void        closeTmpMode();
 
   unsigned  noIdents;       // total number of identifiers
   int       noSS;           // number of state spaces

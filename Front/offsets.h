@@ -53,6 +53,9 @@ public:
   void insert() {
     max_offset++;
   }
+  void remove() {
+    max_offset--;
+  }
   void reorder() {}
   int off(unsigned int id) {
     return id;
