@@ -70,9 +70,6 @@ class SymbolTable {
 
   Deque<int>     localStack;       // stack of hashtable indexes (-1 sentinel)
 
-  //todo: remove fresh stack
-  Deque<std::pair<int, Ident>>     freshStack;       // stack of "fresh" pairs of hashtable index and Ident (-1 sentinel)
-
   Deque<Entry*>  identMap;         // map Ident->Entry
                                    // owns the Entry
 
@@ -108,9 +105,6 @@ public:
   void   openLocal();
   void   closeLocal();
 
-  void   openFresh();
-  void   closeFresh();
-  
   Ident           lookupIdent(Name*);
   char           *lookupSymbol(Ident);
   MonaTypeTag     lookupType(Ident);

@@ -49,8 +49,6 @@ Model buildModelFromExample(char *example, int numVars, char **names, char *type
 }
 
 std::optional<Model> getModel(const MonaAST &ast) {
-    // int maxOffset = offsets.maxOffset();
-    // symbolTable.openFresh();
 #ifdef TMP_MODE_OPTIMIZATION
     symbolTable.openTmpMode();
 #endif
@@ -126,8 +124,6 @@ std::optional<Model> getModel(const MonaAST &ast) {
     delete[] trees;
     delete codeTable;
 
-    // symbolTable.closeFresh();
-    // offsets.maxOffset(maxOffset);
 #ifdef TMP_MODE_OPTIMIZATION
     symbolTable.closeTmpMode();
 #endif

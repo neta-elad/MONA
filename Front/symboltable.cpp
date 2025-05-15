@@ -244,9 +244,6 @@ SymbolTable::insertVar(Name *name, MonaTypeTag type,
 
   Ident result = insert(new VarEntry(name->str, type, noIdents, univs, implicit));
 
-  if (fresh)
-    freshStack.push_back({hash(name->str), result});
-
   return result;
 }
 
@@ -338,23 +335,6 @@ SymbolTable::closeLocal()
   int i;
   while ((i = localStack.pop_back()) != -1)
     remove(i);
-}
-
-void
-SymbolTable::openFresh()
-{
-  freshStack.push_back({-1, -1});
-}
-
-void
-SymbolTable::closeFresh()
-{
-  std::pair<int, Ident> i;
-  while ((i = freshStack.pop_back()).first != -1) {
-    remove(i.first);
-    delete identMap.get(i.second);
-    identMap.set(i.second, nullptr);
-  }
 }
 
 Ident
