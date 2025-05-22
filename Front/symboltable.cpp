@@ -740,7 +740,7 @@ void SymbolTable::clear() {
 }
 
 void SymbolTable::stats() {
-  std::cout << std::format("{} symbols in table\n", symbols->size());
+  std::cout << symbols->size() << " symbols in table\n";
 }
 
 void SymbolTable::openTmpMode() {
@@ -751,8 +751,8 @@ void SymbolTable::openTmpMode() {
 void SymbolTable::closeTmpMode() {
   invariant(tmpMode);
 
-  for (int idx : tmpStack | std::views::reverse) {
-    removeFull(idx);
+  for (auto it = tmpStack.rbegin(); it != tmpStack.rend(); ++it) {
+    removeFull(*it);
   }
 
   tmpStack.clear();

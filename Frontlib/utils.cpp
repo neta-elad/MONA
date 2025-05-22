@@ -17,8 +17,8 @@ extern SymbolTable symbolTable;
  * everything in the end (through the std::vector and std::unique_ptr destructors).
  */
 
-std::vector<std::unique_ptr<std::string>> strings;
-std::map<std::string, Ident, std::less<>> stringsToIdents;
+std::vector<std::unique_ptr<std::string> > strings;
+std::map<std::string, Ident, std::less<> > stringsToIdents;
 std::map<Ident, std::string_view> identsToStrings;
 
 void clear() {
@@ -56,10 +56,8 @@ Ident addPredicate(std::string_view name_str) {
 }
 
 void utils_stats() {
-    std::cout << std::format(
-                    "{} strings, {} stringsToIdents, {} identsToStrings\n",
-                    strings.size(),
-                    stringsToIdents.size(),
-                    identsToStrings.size()
-                );
+    std::cout
+            << strings.size() << " strings, "
+            << stringsToIdents.size() << " stringsToIdents, "
+            << identsToStrings.size() << " identsToStrings\n";
 }

@@ -182,5 +182,5 @@ void PredicateLib::clear() {
 }
 
 void PredicateLib::stats() {
-  std::cout << std::format("{} predicates\n", table->size());
+  std::cout << table->size() << " predicates\n";
 }
