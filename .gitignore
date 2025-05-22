@@ -10,9 +10,6 @@
 *.o
 *.lo
 *.la
-/Front/parser.cpp
-/Front/parser.hpp
-/Front/scanner.cpp
 .libs
 Examples/bdd_example
 Examples/gta_example

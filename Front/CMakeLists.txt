@@ -12,12 +12,8 @@ set(MONAFRONT_HEADERS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-find_package(FLEX REQUIRED)
-find_package(BISON REQUIRED)
-BISON_TARGET(Parser parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
-    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/parser.hpp)
-FLEX_TARGET(Scanner scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
-ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
+set(BISON_Parser_OUTPUTS parser.cpp)
+set(FLEX_Scanner_OUTPUTS scanner.cpp)
 list(APPEND MONAFRONT_SOURCES ${BISON_Parser_OUTPUTS} ${FLEX_Scanner_OUTPUTS})
 
 add_library(monafront ${MONAFRONT_SOURCES} ${MONAFRONT_HEADERS})

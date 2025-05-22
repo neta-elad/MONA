@@ -35,7 +35,7 @@ examples: build
 	@echo "All done!"
 
 .PHONY: build
-build: configure just-build
+build: generate configure just-build
 
 .PHONY: just-build
 just-build:
@@ -45,6 +45,16 @@ just-build:
 configure:
 	cmake $(CMAKE_CONFIGURE_FLAGS) -B "$(BUILD_DIR)" -S .
 
+.PHONY: generate
+generate: FRONT/parser.cpp FRONT/scanner.cpp
+
+FRONT/parser.cpp:
+	bison -d -o FRONT/parser.cpp FRONT/parser.ypp
+
+FRONT/scanner.cpp:
+	flex -o FRONT/scanner.cpp FRONT/scanner.lpp
+
 .PHONY: clean
 clean:
+	rm -f FRONT/parser.cpp FRONT/scanner.cpp
 	rm -rf build
